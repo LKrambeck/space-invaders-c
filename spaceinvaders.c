@@ -13,9 +13,10 @@ typedef struct Game {
 
 typedef struct Elements {
 	t_lista aliens;
-	t_lista structures;
+	t_lista barriers;
 	t_lista shots;
 	t_lista bombs;
+	t_lista spaceship;
 } t_elements;
 
 /*
@@ -26,15 +27,15 @@ int  validateWindowSize (int *rows, int *cols);
 void startGame          (t_game *game, t_elements *elements);
 void inicializeLists    (t_elements *elements);
 void addAliens          (t_elements *elements);
-void addStructures      (t_game *game, t_elements *elements);
-void addAllBarriers     (t_game *game, t_elements *elements);
-void addBarrier         (int i, int j, t_elements *elements);
+void addBarriers        (t_game *game, t_elements *elements);
+void addSingleBarrier   (int i, int j, t_elements *elements);
+void addSpaceship       (t_game *game, t_elements *elements);
 void playGame           (t_game *game, t_elements *elements);
 void printScreen        (t_game *game, t_elements *elements);
 void printBorders       (t_game *game);
 void printAllAliens     (t_elements *elements);
 void printAlien         (int xPos, int yPos, int xSize, int ySize);
-void printStructures    (t_elements *elements);
+void printBarriers      (t_elements *elements);
 void printShots         (t_elements *elements);
 void printBombs         (t_elements *elements);
 void printScore         (t_game *game);
@@ -96,7 +97,8 @@ void startGame(t_game *game, t_elements *elements)
 	inicializeLists (elements);
 
 	addAliens (elements);
-	addStructures (game, elements);
+	addBarriers (game, elements);
+/*	addSpaceship (game, elements);*/
 
 	printScreen (game, elements);
 }
@@ -104,9 +106,10 @@ void startGame(t_game *game, t_elements *elements)
 void inicializeLists (t_elements *elements)
 {
 	inicializa_lista (&elements->aliens);
-	inicializa_lista (&elements->structures);
+	inicializa_lista (&elements->barriers);
 	inicializa_lista (&elements->shots);
 	inicializa_lista (&elements->bombs);
+	inicializa_lista (&elements->spaceship);
 }
 
 void addAliens (t_elements *elements)
@@ -129,14 +132,7 @@ void addAliens (t_elements *elements)
 			insere_fim_lista (i, j, xSize, ySize, alienStatus, alienSpeed, &elements->aliens);
 }
 
-void addStructures (t_game *game, t_elements *elements)
-{
-/*	addSpaceship (game, elements);*/
-
-	addAllBarriers (game, elements);
-}
-
-void addAllBarriers (t_game *game, t_elements *elements)
+void addBarriers (t_game *game, t_elements *elements)
 {
 	int ySize = 7;
 	int xIni = game->maxRows-7;
@@ -149,13 +145,13 @@ void addAllBarriers (t_game *game, t_elements *elements)
 	for (j = (yIni + ySpacing); j < game->maxCols-1; j+= (ySize + ySpacing))
 	{
 		if (noBarriers < 4)
-			addBarrier (xIni, j, elements);
+			addSingleBarrier (xIni, j, elements);
 
 		noBarriers++;
 	}
 }
 	
-void addBarrier (int xPos, int yPos, t_elements *elements)
+void addSingleBarrier (int xPos, int yPos, t_elements *elements)
 {
 	int barrierStatus = 0;
 	int barrierSpeed = 0;
@@ -166,7 +162,7 @@ void addBarrier (int xPos, int yPos, t_elements *elements)
 
 	for (i = xPos; i < (xPos + xSize); i++)
 		for (j = yPos; j < (yPos + ySize); j++) 
-			insere_fim_lista (i, j, 1, 1, barrierStatus, barrierSpeed, &elements->structures);
+			insere_fim_lista (i, j, 1, 1, barrierStatus, barrierSpeed, &elements->barriers);
 }
 
 void playGame(t_game *game, t_elements *elements){}
@@ -175,7 +171,7 @@ void printScreen (t_game *game, t_elements *elements)
 {
 	erase();
 
-	printStructures (elements);
+	printBarriers (elements);
 	printShots (elements);
 	printBombs (elements);
 	printAllAliens (elements);
@@ -229,19 +225,19 @@ void printAlien (int xPos, int yPos, int xSize, int ySize)
 			mvaddch (i,j,'A');
 }
 
-void printStructures (t_elements *elements)
+void printBarriers (t_elements *elements)
 {
-	if (!inicializa_atual_inicio (&elements->structures))
+	if (!inicializa_atual_inicio (&elements->barriers))
 		return;
 
 	int xPos, yPos, xSize, ySize, status, speed;	
 
-	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->structures))
+	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->barriers))
 	{
 		if (status == 0)
 			mvaddch (xPos, yPos, 'B');
 		
-		incrementa_atual (&elements->structures);
+		incrementa_atual (&elements->barriers);
 	}
 }
 
