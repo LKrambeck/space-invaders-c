@@ -24,7 +24,8 @@ int  validateWindowSize (int *rows, int *cols);
 void startGame          (t_game *game, t_elements *elements);
 void inicializeLists    (t_elements *elements);
 void addAliens          (t_elements *elements);
-void addStructures      (t_elements *elements);
+void addStructures      (t_game *game, t_elements *elements);
+void addBarriers        (t_game *game, t_elements *elements);
 void playGame           (t_game *game, t_elements *elements);
 void printScreen        (t_game *game, t_elements *elements);
 void printBorders       (t_game *game);
@@ -42,8 +43,6 @@ int main ()
 	startGame (&game, &elements);
 
 	playGame (&game, &elements);
-
-	printScreen (&game, &elements);
 
 	endwin();
 	return 0;
@@ -86,7 +85,9 @@ void startGame(t_game *game, t_elements *elements)
 	inicializeLists (elements);
 
 	addAliens (elements);
-	addStructures (elements);
+	addStructures (game, elements);
+
+	printScreen (game, elements);
 }
 
 void inicializeLists (t_elements *elements)
@@ -117,7 +118,31 @@ void addAliens (t_elements *elements)
 			insere_fim_lista (i, j, xSize, ySize, alienStatus, alienSpeed, &elements->aliens);
 }
 
-void addStructures (t_elements *elements){}
+void addStructures (t_game *game, t_elements *elements)
+{
+/*	addSpaceship (elements);*/
+
+	addBarriers (game, elements);
+}
+
+void addBarriers (t_game *game, t_elements *elements)
+{
+	int xSize = 3;
+	int ySize = 7;
+	int barrierStatus = 0;
+	int barrierSpeed = 0;
+
+	int xIni = game->maxRows-5;
+	int yIni = 1;
+	int ySpacing = ((game->maxCols-2) - 4*(ySize))/5;
+
+	int i, j;
+
+	for (i = xIni; i < (xIni + xSize); i++)
+		for (j = (yIni + ySpacing); j < game->maxCols-1; j++)
+			insere_fim_lista (i, j, 1, 1, barrierStatus, barrierSpeed, &elements->structures);
+
+}
 
 void playGame(t_game *game, t_elements *elements){}
 
