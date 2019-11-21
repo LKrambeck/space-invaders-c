@@ -26,7 +26,9 @@ void inicializeLists    (t_elements *elements);
 void addAliens          (t_elements *elements);
 void addStructures      (t_elements *elements);
 void playGame           (t_game *game, t_elements *elements);
-void printScreen        (int rows, int cols);
+void printScreen        (t_game *game, t_elements *elements);
+void printAllAliens     (t_elements *elements);
+void printAlien         (int xPos, int yPos, int xSize, int ySize);
 
 int main ()
 {
@@ -40,7 +42,7 @@ int main ()
 
 	playGame (&game, &elements);
 
-	printScreen (game.maxRows, game.maxCols);
+	printScreen (&game, &elements);
 
 	endwin();
 	return 0;
@@ -96,36 +98,73 @@ void inicializeLists (t_elements *elements)
 
 void addAliens (t_elements *elements)
 {
-	//TO DO: aliens da primeira fileira devem ser 3x3
+	/*TO DO: aliens da primeira fileira devem ser 3x3*/
 	int xIni = 7;
 	int yIni = 1;
 	int xSpacing = 4;
 	int ySpacing = 7;
 
-	int alienSize = 5;
+	int xSize = 3;
+	int ySize = 5;
+	int alienStatus = 0;
 	int alienSpeed = 1;
 
 	int i, j;
 
 	for (i = xIni; i < (5 * xSpacing + xIni); i += xSpacing)
 		for (j = yIni; j < (11 * ySpacing + yIni); j+= ySpacing)
-			insere_fim_lista (i, j, alienSize, alienSize, alienSpeed, &elements->aliens);
+			insere_fim_lista (i, j, xSize, ySize, alienStatus, alienSpeed, &elements->aliens);
 }
 
 void addStructures (t_elements *elements){}
 
 void playGame(t_game *game, t_elements *elements){}
 
-void printScreen (int rows, int cols)
+void printScreen (t_game *game, t_elements *elements)
 {
 	erase();
+/*
+	printBorders ();
+*/
+	printAllAliens (elements);
+/*
+	printStructures ();
+
+	printShots ();
+
+	printBombs ();
 
 	int i, j;
-	for ( i=0; i < rows; i++ )
-		for ( j=0; j < cols; j++ )
+	for ( i=0; i < game->maxRows; i++ )
+		for ( j=0; j < game->maxCols; j++ )
 		{
 			mvaddch(i,j,'.');
 		}
-	refresh();
-	sleep(2);
+*/	refresh();
+	sleep(20);
+}
+
+void printAllAliens (t_elements *elements)
+{
+	if (!inicializa_atual_inicio (&elements->aliens))
+		return;
+
+	int xPos, yPos, xSize, ySize, status, speed;	
+
+	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->aliens))
+	{
+		if (status == 0)
+			printAlien (xPos, yPos, xSize, ySize);
+		
+		incrementa_atual (&elements->aliens);
+	}
+}
+
+void printAlien (int xPos, int yPos, int xSize, int ySize)
+{
+	int i,j;
+
+	for (i=xPos; i<(xPos+xSize); i++)
+		for (j=yPos; j<(yPos+ySize); j++)
+			mvaddch (i,j,'A');
 }
