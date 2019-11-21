@@ -235,3 +235,35 @@ void printStructures (t_elements *elements)
 		incrementa_atual (&elements->structures);
 	}
 }
+
+void printShots (t_elements *elements)
+{
+	if (!inicializa_atual_inicio (&elements->shots))
+		return;
+
+	int xPos, yPos, xSize, ySize, status, speed;	
+
+	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->shots))
+	{
+		if (status == 0)
+			mvaddch (xPos, yPos, '|');
+		
+		incrementa_atual (&elements->shots);
+	}
+}
+
+void printBombs (t_elements *elements)
+{
+	if (!inicializa_atual_inicio (&elements->bombs))
+		return;
+
+	int xPos, yPos, xSize, ySize, status, speed;	
+
+	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->bombs))
+	{
+		if (status == 0)
+			mvaddch (xPos, yPos, '$');
+		
+		incrementa_atual (&elements->bombs);
+	}
+}
