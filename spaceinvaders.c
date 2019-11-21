@@ -94,7 +94,24 @@ void inicializeLists (t_elements *elements)
 	inicializa_lista (&elements->bombs);
 }
 
-void addAliens (t_elements *elements){}
+void addAliens (t_elements *elements)
+{
+	//TO DO: aliens da primeira fileira devem ser 3x3
+	int xIni = 7;
+	int yIni = 1;
+	int xSpacing = 4;
+	int ySpacing = 7;
+
+	int alienSize = 5;
+	int alienSpeed = 1;
+
+	int i, j;
+
+	for (i = xIni; i < (5 * xSpacing + xIni); i += xSpacing)
+		for (j = yIni; j < (11 * ySpacing + yIni); j+= ySpacing)
+			insere_fim_lista (i, j, alienSize, alienSize, alienSpeed, &elements->aliens);
+}
+
 void addStructures (t_elements *elements){}
 
 void playGame(t_game *game, t_elements *elements){}
