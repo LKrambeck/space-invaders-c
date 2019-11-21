@@ -18,7 +18,9 @@ typedef struct Elements {
 	t_lista bombs;
 } t_elements;
 
-
+/*
+	Prototypes 
+*/
 int  setupInput         (t_game *game);
 int  validateWindowSize (int *rows, int *cols);
 void startGame          (t_game *game, t_elements *elements);
@@ -33,6 +35,13 @@ void printBorders       (t_game *game);
 void printAllAliens     (t_elements *elements);
 void printAlien         (int xPos, int yPos, int xSize, int ySize);
 void printStructures    (t_elements *elements);
+void printShots         (t_elements *elements);
+void printBombs         (t_elements *elements);
+void printScore         (t_game *game);
+int  nDigits            (int n);
+
+
+
 
 int main ()
 {
@@ -122,7 +131,7 @@ void addAliens (t_elements *elements)
 
 void addStructures (t_game *game, t_elements *elements)
 {
-/*	addSpaceship (elements);*/
+/*	addSpaceship (game, elements);*/
 
 	addAllBarriers (game, elements);
 }
@@ -167,11 +176,11 @@ void printScreen (t_game *game, t_elements *elements)
 	erase();
 
 	printStructures (elements);
-/*	printShots ();
-	printBombs ();*/
+	printShots (elements);
+	printBombs (elements);
 	printAllAliens (elements);
 	printBorders (game);
-/*	printScore (game);*/
+	printScore (game);
 
 	refresh();
 
@@ -266,4 +275,21 @@ void printBombs (t_elements *elements)
 		
 		incrementa_atual (&elements->bombs);
 	}
+}
+
+void printScore (t_game *game)
+{
+	int yPosLevel = (game->maxCols-7)/2;
+	int yPosScore = (game->maxCols-nDigits(game->score))/2;
+
+	mvprintw (1, yPosLevel, "Level %d", game->level);
+	mvprintw (2, yPosScore, "%d", game->score);
+}
+
+int nDigits (int n)
+{
+	if (n%10 == 0)
+		return 0;
+
+	return 1 + (nDigits (n/10));
 }
