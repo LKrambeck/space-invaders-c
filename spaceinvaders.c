@@ -38,6 +38,7 @@ void printAlien         (int xPos, int yPos, int xSize, int ySize);
 void printBarriers      (t_elements *elements);
 void printShots         (t_elements *elements);
 void printBombs         (t_elements *elements);
+void printSpaceship     (t_elements *elements);
 void printScore         (t_game *game);
 int  nDigits            (int n);
 
@@ -98,7 +99,7 @@ void startGame(t_game *game, t_elements *elements)
 
 	addAliens (elements);
 	addBarriers (game, elements);
-/*	addSpaceship (game, elements);*/
+	addSpaceship (game, elements);
 
 	printScreen (game, elements);
 }
@@ -165,18 +166,31 @@ void addSingleBarrier (int xPos, int yPos, t_elements *elements)
 			insere_fim_lista (i, j, 1, 1, barrierStatus, barrierSpeed, &elements->barriers);
 }
 
+void addSpaceship (t_game *game, t_elements *elements)
+{
+	int xSize = 2;
+	int ySize = 5;
+	int xIni = game->maxRows-xSize-1;
+	int yIni = (game->maxCols-ySize)/2;
+	int spaceshipStatus = 0;
+	int spaceshipSpeed = 4;
+
+	insere_fim_lista (xIni, yIni, xSize, ySize, spaceshipStatus, spaceshipSpeed, &elements->spaceship);
+}
+
 void playGame(t_game *game, t_elements *elements){}
 
 void printScreen (t_game *game, t_elements *elements)
 {
 	erase();
 
-	printBarriers (elements);
-	printShots (elements);
-	printBombs (elements);
-	printAllAliens (elements);
-	printBorders (game);
-	printScore (game);
+	printBarriers   (elements);
+	printShots      (elements);
+	printBombs      (elements);
+	printAllAliens  (elements);
+	printSpaceship  (elements);
+	printBorders    (game);
+	printScore      (game);
 
 	refresh();
 
@@ -271,6 +285,22 @@ void printBombs (t_elements *elements)
 		
 		incrementa_atual (&elements->bombs);
 	}
+}
+
+void printSpaceship (t_elements *elements)
+{
+	if (!inicializa_atual_inicio (&elements->spaceship))
+		return;
+
+	int xPos, yPos, xSize, ySize, status, speed;
+
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->spaceship);
+
+	int i, j;
+
+	for (i=xPos; i < (xPos+xSize); i++)
+		for (j=yPos; j < (yPos+ySize); j++)
+			mvaddch (i,j,'S');
 }
 
 void printScore (t_game *game)
