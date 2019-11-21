@@ -27,6 +27,7 @@ void addAliens          (t_elements *elements);
 void addStructures      (t_elements *elements);
 void playGame           (t_game *game, t_elements *elements);
 void printScreen        (t_game *game, t_elements *elements);
+void printBorders       (t_game *game);
 void printAllAliens     (t_elements *elements);
 void printAlien         (int xPos, int yPos, int xSize, int ySize);
 
@@ -123,25 +124,33 @@ void playGame(t_game *game, t_elements *elements){}
 void printScreen (t_game *game, t_elements *elements)
 {
 	erase();
-/*
-	printBorders ();
-*/
-	printAllAliens (elements);
-/*
-	printStructures ();
 
+/*	printStructures ();
 	printShots ();
+	printBombs ();*/
+	printAllAliens (elements);
+	printBorders (game);
 
-	printBombs ();
+	refresh();
 
-	int i, j;
-	for ( i=0; i < game->maxRows; i++ )
-		for ( j=0; j < game->maxCols; j++ )
-		{
-			mvaddch(i,j,'.');
-		}
-*/	refresh();
 	sleep(20);
+}
+
+void printBorders (t_game *game)
+{
+	int i,j;
+
+	for (i=0; i < game->maxRows; i++)
+	{
+		mvaddch (i, 0, '|');
+		mvaddch (i, game->maxCols-1, '|');
+	}
+
+	for (j=0; j < game->maxCols; j++)
+	{
+		mvaddch (0, j, '-'); 
+		mvaddch (game->maxRows-1, j, '-');
+	}
 }
 
 void printAllAliens (t_elements *elements)
