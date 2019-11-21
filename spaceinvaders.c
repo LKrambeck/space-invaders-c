@@ -25,12 +25,14 @@ void startGame          (t_game *game, t_elements *elements);
 void inicializeLists    (t_elements *elements);
 void addAliens          (t_elements *elements);
 void addStructures      (t_game *game, t_elements *elements);
-void addBarriers        (t_game *game, t_elements *elements);
+void addAllBarriers     (t_game *game, t_elements *elements);
+void addBarrier         (int i, int j, t_elements *elements);
 void playGame           (t_game *game, t_elements *elements);
 void printScreen        (t_game *game, t_elements *elements);
 void printBorders       (t_game *game);
 void printAllAliens     (t_elements *elements);
 void printAlien         (int xPos, int yPos, int xSize, int ySize);
+void printStructures    (t_elements *elements);
 
 int main ()
 {
@@ -122,26 +124,40 @@ void addStructures (t_game *game, t_elements *elements)
 {
 /*	addSpaceship (elements);*/
 
-	addBarriers (game, elements);
+	addAllBarriers (game, elements);
 }
 
-void addBarriers (t_game *game, t_elements *elements)
+void addAllBarriers (t_game *game, t_elements *elements)
 {
-	int xSize = 3;
 	int ySize = 7;
-	int barrierStatus = 0;
-	int barrierSpeed = 0;
-
-	int xIni = game->maxRows-5;
+	int xIni = game->maxRows-7;
 	int yIni = 1;
 	int ySpacing = ((game->maxCols-2) - 4*(ySize))/5;
+	int noBarriers = 0;
+
+	int j;
+
+	for (j = (yIni + ySpacing); j < game->maxCols-1; j+= (ySize + ySpacing))
+	{
+		if (noBarriers < 4)
+			addBarrier (xIni, j, elements);
+
+		noBarriers++;
+	}
+}
+	
+void addBarrier (int xPos, int yPos, t_elements *elements)
+{
+	int barrierStatus = 0;
+	int barrierSpeed = 0;
+	int xSize = 3;
+	int ySize = 7;
 
 	int i, j;
 
-	for (i = xIni; i < (xIni + xSize); i++)
-		for (j = (yIni + ySpacing); j < game->maxCols-1; j++)
+	for (i = xPos; i < (xPos + xSize); i++)
+		for (j = yPos; j < (yPos + ySize); j++) 
 			insere_fim_lista (i, j, 1, 1, barrierStatus, barrierSpeed, &elements->structures);
-
 }
 
 void playGame(t_game *game, t_elements *elements){}
@@ -150,11 +166,12 @@ void printScreen (t_game *game, t_elements *elements)
 {
 	erase();
 
-/*	printStructures ();
-	printShots ();
+	printStructures (elements);
+/*	printShots ();
 	printBombs ();*/
 	printAllAliens (elements);
 	printBorders (game);
+/*	printScore (game);*/
 
 	refresh();
 
@@ -201,4 +218,20 @@ void printAlien (int xPos, int yPos, int xSize, int ySize)
 	for (i=xPos; i<(xPos+xSize); i++)
 		for (j=yPos; j<(yPos+ySize); j++)
 			mvaddch (i,j,'A');
+}
+
+void printStructures (t_elements *elements)
+{
+	if (!inicializa_atual_inicio (&elements->structures))
+		return;
+
+	int xPos, yPos, xSize, ySize, status, speed;	
+
+	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->structures))
+	{
+		if (status == 0)
+			mvaddch (xPos, yPos, 'B');
+		
+		incrementa_atual (&elements->structures);
+	}
 }
