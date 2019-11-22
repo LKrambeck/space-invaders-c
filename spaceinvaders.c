@@ -6,6 +6,7 @@
 
 #define CLOCK 30000
 #define SHOT_SPEED 50
+#define BOMB_SPEED 30
 
 typedef struct Game {
 	int score;
@@ -40,6 +41,8 @@ void addSingleBarrier              (int i, int j, t_elements *elements);
 void addSpaceship                  (t_game *game, t_elements *elements);
 void addShot                       (t_elements *elements);
 void getSpaceshipShootingPos       (int *x, int *y, t_elements *elements);
+void addBomb                       (t_elements *elements);
+void getAlienShootingPos           (int *x, int *y, t_elements *elements);
 
 
 /* Moving Lib */
@@ -50,10 +53,12 @@ int  canMoveRight                  (t_game *game, t_lista *list);
 void moveObjects                   (t_game *game, t_elements *elements);
 void moveAliens                    (t_game *game, t_elements *elements);
 int  aliensCanMoveRight            (t_game *game, t_lista *aliens);
-void moveAliensRight               (t_lista *aliens);
 int  aliensCanMoveLeft             (t_game *game, t_lista *aliens);
+void moveAliensRight               (t_lista *aliens);
 void moveAliensLeft                (t_lista *aliens);
 void moveAliensDown                (t_elements *elements);
+void moveShots                     (t_lista *shots);
+void moveBombs                     (t_lista *bombs);
 
 /* Prints Lib */
 void printScreen                   (t_game *game, t_elements *elements);
@@ -247,11 +252,14 @@ int input (t_game *game, t_elements *elements)
 void addShot (t_elements *elements)
 {
 	int xPos, yPos;
-	int shotStatus = 0;
+	int xSize = 1;
+	int ySize = 1;
+	int type = 0;
+	int status = 0;
 
 	getSpaceshipShootingPos (&xPos, &yPos, elements);
 
-	insere_fim_lista (xPos, yPos, 1, 1, 0, shotStatus, SHOT_SPEED, &elements->shots);
+	insere_fim_lista (xPos, yPos, xSize, ySize, type, status, SHOT_SPEED, &elements->shots);
 }
 
 void getSpaceshipShootingPos (int *x, int *y, t_elements *elements)
@@ -259,9 +267,36 @@ void getSpaceshipShootingPos (int *x, int *y, t_elements *elements)
 	int xPos, yPos, xSize, ySize, type, status, speed;
 	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->spaceship);
 
-	*x = xPos - 1;
-	*y = yPos + 2;
+	*x = xPos;
+	*y = yPos + (ySize/2);
 }
+
+void addBomb (t_elements *elements)
+{
+	int xPos, yPos;
+	int xSize = 1;
+	int ySize = 1;
+	int type = 0;
+	int status = 0;
+
+	getAlienShootingPos (&xPos, &yPos, elements);
+
+	insere_fim_lista (xPos, yPos, xSize, ySize, type, status, BOMB_SPEED, &elements->bombs);
+}
+
+void getAlienShootingPos (int *x, int *y, t_elements *elements)
+{
+	int xPos, yPos, xSize, ySize, type, status, speed;
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->bombs);
+
+	*x = xPos + xSize;
+	*y = yPos + ySize/2;
+}
+
+
+/*
+	=================== MOVE ====================
+*/
 
 void moveSpaceshipLeft (t_game *game, t_elements *elements)
 {
@@ -301,13 +336,13 @@ int canMoveRight (t_game *game, t_lista *list)
 
 void moveObjects (t_game *game, t_elements *elements)
 {
-	moveShots (game, elements);
+	moveShots (&elements->shots);
 
 /*	if (teste de tempo com contador % elements->aliens->speed)*/
 	moveAliens (game, elements);
 
 /*	if (teste de tempo com contador % elements->bombs->speed)*/
-/*	moveBombs (game, elements);*/
+	moveBombs (game, elements);
 
 /*	if (teste de tempo com contador % elements->mothership->speed)*/
 /*	moveMothership (game, elements);	*/
@@ -401,11 +436,34 @@ void moveAliensDown (t_elements *elements)
 	elements->aliensWay *= -1;	
 }
 
+void moveShots (t_lista *shots)
+{
+	if (!inicializa_atual_inicio (shots))
+		return;
+
+	while (decrementa_x_atual (shots))
+		incrementa_atual (shots);
+}
+
+void moveBombs (t_lista *bombs)
+{
+	if (!inicializa_atual_inicio (bombs))
+		return;
+
+	while (incrementa_x_atual (bombs))
+		incrementa_atual (bombs);
+}
 
 
 
 
 
+
+
+
+/*
+	=============== PRINTS =================
+*/
 
 void printScreen (t_game *game, t_elements *elements)
 {
