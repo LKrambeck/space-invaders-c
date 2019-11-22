@@ -7,6 +7,7 @@
 #define CLOCK 80000
 #define SHOT_SPEED 50
 #define BOMB_SPEED 30
+#define ALIEN_SPEED 20
 
 #define ALIEN1_1 " AAA "
 #define ALIEN1_2 "AMMMA"
@@ -17,12 +18,12 @@
 #define ALIEN3_1 " nmn "
 #define ALIEN3_2 "dbMdb"
 #define ALIEN3_3 "_/-\\_"
-#define BARRIER1 "A"
-#define BARRIER2 "M"
+#define BARRIER1 'A'
+#define BARRIER2 'M'
 #define SPACESHIP1 " /^\\ "
 #define SPACESHIP2 "MMMMM"
-#define SHOT "|"
-#define BOMB "$"
+#define SHOT '|'
+#define BOMB '$'
 #define EXPLOSION1 " \\'/ "
 #define EXPLOSION2 "-   -"
 #define EXPLOSION3 " /,\\ "
@@ -92,7 +93,7 @@ int  aliensCanMoveLeft             (t_game *game, t_lista *aliens);
 /* Prints Lib */
 void printBorders                  (t_game *game);
 void printAllAliens                (t_elements *elements);
-void printAlien                    (int xPos, int yPos, int xSize, int ySize);
+void printAlien                    (int xPos, int yPos, int type);
 void printBarriers                 (t_elements *elements);
 void printShots                    (t_elements *elements);
 void printBombs                    (t_elements *elements);
@@ -177,19 +178,31 @@ void addAliens (t_elements *elements)
 	/*TO DO: aliens da primeira fileira devem ser 3x3*/
 	int xIni = 7;
 	int yIni = 1;
-	int xSpacing = 4;
-	int ySpacing = 7;
-
 	int xSize = 3;
 	int ySize = 5;
+	int xSpacing = 4;
+	int ySpacing = 7;
 	int alienStatus = 0;
-	int alienSpeed = 1;
+	int alienType;
 
-	int i, j;
+	int i, j, row = 1;
 
 	for (i = xIni; i < (5 * xSpacing + xIni); i += xSpacing)
+	{
 		for (j = yIni; j < (11 * ySpacing + yIni); j+= ySpacing)
-			insere_fim_lista (i, j, xSize, ySize, 0, alienStatus, alienSpeed, &elements->aliens);
+		{
+			if (row == 1)
+				alienType = 1;
+			if (row == 2 || row == 3)
+				alienType = 2;
+			if (row == 4 || row == 5)
+				alienType = 3;
+
+			insere_fim_lista (i, j, xSize, ySize, alienType, alienStatus, ALIEN_SPEED, &elements->aliens);
+		}
+
+		row++;
+	}
 }
 
 void addBarriers (t_game *game, t_elements *elements)
@@ -217,12 +230,25 @@ void addSingleBarrier (int xPos, int yPos, t_elements *elements)
 	int barrierSpeed = 0;
 	int xSize = 3;
 	int ySize = 7;
+	int barrierType;
 
-	int i, j;
+	int i, j, count = 1;
 
 	for (i = xPos; i < (xPos + xSize); i++)
 		for (j = yPos; j < (yPos + ySize); j++) 
-			insere_fim_lista (i, j, 1, 1, 0, barrierStatus, barrierSpeed, &elements->barriers);
+		{
+			if (count != 1 && count != 7 && count != 17 && count != 18 && count != 19)
+			{
+				if (count == 2 || count == 6 || count == 8 || count == 14)
+					barrierType = 1; 
+				else 
+					barrierType = 2;
+
+				insere_fim_lista (i, j, 1, 1, barrierType, barrierStatus, barrierSpeed, &elements->barriers);
+			}
+
+			count++;
+		}
 }
 
 void addSpaceship (t_game *game, t_elements *elements)
@@ -585,19 +611,38 @@ void printAllAliens (t_elements *elements)
 	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->aliens))
 	{
 		if (status == 0)
-			printAlien (xPos, yPos, xSize, ySize);
+				printAlien (xPos, yPos, type);
+
+/*		if (status == 2)
+				printExplosion (xPos, yPos);*/
 		
 		incrementa_atual (&elements->aliens);
 	}
 }
 
-void printAlien (int xPos, int yPos, int xSize, int ySize)
+void printAlien (int xPos, int yPos, int type)
 {
-	int i,j;
+	switch (type)
+	{
+		case 1:
+			mvprintw (xPos  , yPos, ALIEN1_1);
+			mvprintw (xPos+1, yPos, ALIEN1_2);
+			mvprintw (xPos+2, yPos, ALIEN1_3);
+		break;
 
-	for (i=xPos; i<(xPos+xSize); i++)
-		for (j=yPos; j<(yPos+ySize); j++)
-			mvaddch (i,j,'A');
+		case 2:
+			mvprintw (xPos  , yPos, ALIEN2_1);
+			mvprintw (xPos+1, yPos, ALIEN2_2);
+			mvprintw (xPos+2, yPos, ALIEN2_3);
+		break;
+
+		case 3:
+			mvprintw (xPos  , yPos, ALIEN3_1);
+			mvprintw (xPos+1, yPos, ALIEN3_2);
+			mvprintw (xPos+2, yPos, ALIEN3_3);
+		break;
+	}
+
 }
 
 void printBarriers (t_elements *elements)
@@ -609,8 +654,10 @@ void printBarriers (t_elements *elements)
 
 	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->barriers))
 	{
-		if (status == 0)
-			mvaddch (xPos, yPos, 'B');
+		if (type == 1)
+			mvaddch (xPos, yPos, BARRIER1);
+		if (type == 2)
+			mvaddch (xPos, yPos, BARRIER2);
 		
 		incrementa_atual (&elements->barriers);
 	}
