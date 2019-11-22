@@ -4,7 +4,7 @@
 
 #include "lib_lista_space.h"
 
-#define CLOCK 30000
+#define CLOCK 80000
 #define SHOT_SPEED 50
 #define BOMB_SPEED 30
 
@@ -36,6 +36,10 @@ void moveObjects                   (t_game *game, t_elements *elements);
 void testColisions                 (t_game *game, t_elements *elements);
 void printScreen                   (t_game *game, t_elements *elements);
 int  input                         (t_game *game, t_elements *elements);
+
+/* Colisions Lib */
+void testShotsColisions            (t_game *game, t_elements *elements);
+int crash                          (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size);
 
 /* Add elements Lib */
 void addBarriers                   (t_game *game, t_elements *elements);
@@ -222,7 +226,7 @@ void playGame(t_game *game, t_elements *elements)
 
 		moveObjects (game, elements);
 
-/*		testColisions (elements);*/
+		testColisions (game, elements);
 
 		printScreen (game, elements);
 
@@ -230,6 +234,56 @@ void playGame(t_game *game, t_elements *elements)
 	}
 
 }
+
+void testColisions (t_game *game, t_elements *elements)
+{
+	testShotsColisions  (game, elements);
+/*	testBombsColisions  (game, elements);
+	testAliensColisions (game, elements);*/
+}
+
+void testShotsColisions (t_game *game, t_elements *elements)
+{
+	inicializa_atual_inicio (&elements->shots);
+
+	int xPos1, yPos1, xSize1, ySize1, type1, status1, speed1;
+	int xPos2, yPos2, xSize2, ySize2, type2, status2, speed2;
+
+
+/* MODULARIZAR */
+	while (consulta_item_atual (&xPos1, &yPos1, &xSize1, &ySize1, &type1, &status1, &speed1, &elements->shots))
+	{
+		inicializa_atual_inicio (&elements->aliens);
+
+		while (consulta_item_atual (&xPos2, &yPos2, &xSize2, &ySize2, &type2, &status2, &speed2, &elements->aliens))
+		{
+			if (crash (xPos1, yPos1, xSize1, ySize1, xPos2, yPos2, xSize2, ySize2))
+			{
+				remove_item_atual (&elements->aliens);
+				remove_item_atual (&elements->shots);
+			}
+
+			incrementa_atual (&elements->aliens);
+		}
+
+		incrementa_atual (&elements->shots);
+	}
+}
+
+int crash (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size)
+{
+	int i,j,k,l;
+
+	for (i = x1; i < x1 + x1Size; i++)
+		for (j = y1; j< y1 + y1Size; j++)
+			for (k = x2; k < x2 + x2Size; k++)
+				for (l = y2; l < y2 + y2Size; l++)
+					if (i == k && j == l)
+						return 1;
+
+	return 0;
+}
+
 
 int input (t_game *game, t_elements *elements)
 {
