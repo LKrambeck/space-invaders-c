@@ -4,6 +4,9 @@
 
 #include "lib_lista_space.h"
 
+#define CLOCK 100000
+#define SHOT_SPEED 50
+
 typedef struct Game {
 	int score;
 	int level;
@@ -22,25 +25,28 @@ typedef struct Elements {
 /*
 	Prototypes 
 */
-int  setupInput         (t_game *game);
-int  validateWindowSize (int *rows, int *cols);
-void startGame          (t_game *game, t_elements *elements);
-void inicializeLists    (t_elements *elements);
-void addAliens          (t_elements *elements);
-void addBarriers        (t_game *game, t_elements *elements);
-void addSingleBarrier   (int i, int j, t_elements *elements);
-void addSpaceship       (t_game *game, t_elements *elements);
-void playGame           (t_game *game, t_elements *elements);
-void printScreen        (t_game *game, t_elements *elements);
-void printBorders       (t_game *game);
-void printAllAliens     (t_elements *elements);
-void printAlien         (int xPos, int yPos, int xSize, int ySize);
-void printBarriers      (t_elements *elements);
-void printShots         (t_elements *elements);
-void printBombs         (t_elements *elements);
-void printSpaceship     (t_elements *elements);
-void printScore         (t_game *game);
-int  nDigits            (int n);
+int  setupInput                    (t_game *game);
+int  validateWindowSize            (int *rows, int *cols);
+void startGame                     (t_game *game, t_elements *elements);
+void inicializeLists               (t_elements *elements);
+void addAliens                     (t_elements *elements);
+void addBarriers                   (t_game *game, t_elements *elements);
+void addSingleBarrier              (int i, int j, t_elements *elements);
+void addSpaceship                  (t_game *game, t_elements *elements);
+void playGame                      (t_game *game, t_elements *elements);
+int  input                         (t_game *game, t_elements *elements);
+void addShot                       (t_elements *elements);
+void getSpaceshipShootingPos       (int *x, int *y, t_elements *elements);
+void printScreen                   (t_game *game, t_elements *elements);
+void printBorders                  (t_game *game);
+void printAllAliens                (t_elements *elements);
+void printAlien                    (int xPos, int yPos, int xSize, int ySize);
+void printBarriers                 (t_elements *elements);
+void printShots                    (t_elements *elements);
+void printBombs                    (t_elements *elements);
+void printSpaceship                (t_elements *elements);
+void printScore                    (t_game *game);
+int  nDigits                       (int n);
 
 
 
@@ -176,9 +182,78 @@ void addSpaceship (t_game *game, t_elements *elements)
 	int spaceshipSpeed = 4;
 
 	insere_fim_lista (xIni, yIni, xSize, ySize, spaceshipStatus, spaceshipSpeed, &elements->spaceship);
+
+	inicializa_atual_inicio (&elements->spaceship);
 }
 
-void playGame(t_game *game, t_elements *elements){}
+void playGame(t_game *game, t_elements *elements)
+{
+	while (1)
+	{
+		if (!input (game, elements))
+			return;
+/*
+		moveObjects (game, elements);
+
+		testColisions (elements);
+*/
+		printScreen (game, elements);
+
+		usleep(CLOCK);		
+	}
+
+}
+
+int input (t_game *game, t_elements *elements)
+{
+	int key = getch();
+
+	if(key == ' ')
+		addShot (elements);
+/*
+	else if(key == KEY_LEFT)
+		moveSpaceshipLeft (game, elements);
+
+	else if (key == KEY_RIGHT) 
+		moveSpaceshipRight (game, elements);
+
+	else if (key == 'q')
+		return 0;
+*/
+	return 1;	
+}
+
+void addShot (t_elements *elements)
+{
+	int xPos, yPos;
+	int shotStatus = 0;
+
+	getSpaceshipShootingPos (&xPos, &yPos, elements);
+
+	insere_fim_lista (xPos, yPos, 1, 1, shotStatus, SHOT_SPEED, &elements->shots);
+}
+
+void getSpaceshipShootingPos (int *x, int *y, t_elements *elements)
+{
+	int xPos, yPos, xSize, ySize, status, speed;
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->spaceship);
+
+	*x = xPos - 1;
+	*y = yPos + 2;
+}
+
+void moveSpaceshipLeft (t_game *game, t_elements *elements);
+
+
+
+
+
+
+
+
+
+
+
 
 void printScreen (t_game *game, t_elements *elements)
 {
@@ -193,8 +268,6 @@ void printScreen (t_game *game, t_elements *elements)
 	printScore      (game);
 
 	refresh();
-
-	sleep(20);
 }
 
 void printBorders (t_game *game)
@@ -260,6 +333,7 @@ void printShots (t_elements *elements)
 	if (!inicializa_atual_inicio (&elements->shots))
 		return;
 
+
 	int xPos, yPos, xSize, ySize, status, speed;	
 
 	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->shots))
@@ -289,9 +363,6 @@ void printBombs (t_elements *elements)
 
 void printSpaceship (t_elements *elements)
 {
-	if (!inicializa_atual_inicio (&elements->spaceship))
-		return;
-
 	int xPos, yPos, xSize, ySize, status, speed;
 
 	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->spaceship);
