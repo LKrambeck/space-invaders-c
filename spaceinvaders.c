@@ -7,10 +7,10 @@
 
 #define CLOCK           50000
 #define SHOT_SPEED      50
-#define BOMB_SPEED      30
+#define BOMB_SPEED      40
 #define ALIEN_SPEED     20
 #define SPACESHIP_SPEED 40
-#define BOMB_FREQUENCY  5
+#define BOMB_FREQUENCY  50
 
 #define ALIEN1_1        " AAA "
 #define ALIEN1_2        "AMMMA"
@@ -59,14 +59,17 @@ int  validateWindowSize            (t_game *game);
 void inicializeLists               (t_elements *elements);
 void startGame                     (t_game *game, t_elements *elements);
 void playGame                      (t_game *game, t_elements *elements);
-void moveObjects                   (t_game *game, t_elements *elements);
-void testColisions                 (t_game *game, t_elements *elements);
+void moveObjects                   (t_game *game, t_elements *elements, int clock);
+int  testColisions                 (t_game *game, t_elements *elements);
 void printScreen                   (t_game *game, t_elements *elements);
 int  input                         (t_game *game, t_elements *elements);
 
 /* Colisions Lib */
 void testShotsColisions            (t_game *game, t_elements *elements);
-int crash                          (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size);
+int  testBombsColisions            (t_game *game, t_elements *elements);
+int  testAliensColisions           (t_game *game, t_elements *elements);
+void listsCrashTest                (t_lista *list1, t_lista *list2);
+int  crash                         (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size);
 
 /* Add elements Lib */
 void addBarriers                   (t_game *game, t_elements *elements);
@@ -83,10 +86,10 @@ void getAlienShootingPos           (int *x, int *y, t_elements *elements);
 int  canMoveLeft                   (t_game *game, t_lista *list);
 int  canMoveRight                  (t_game *game, t_lista *list);
 void moveShots                     (t_lista *shots);
-void moveBombs                     (t_lista *bombs);
+void moveBombs                     (t_lista *bombs, int clock);
 void moveSpaceshipLeft             (t_game *game, t_elements *elements);
 void moveSpaceshipRight            (t_game *game, t_elements *elements);
-void moveAliens                    (t_game *game, t_elements *elements);
+void moveAliens                    (t_game *game, t_elements *elements, int clock);
 void moveAliensRight               (t_elements *elements);
 void moveAliensLeft                (t_elements *elements);
 void moveAliensDown                (t_elements *elements);
@@ -272,56 +275,92 @@ void addSpaceship (t_game *game, t_elements *elements)
 
 void playGame(t_game *game, t_elements *elements)
 {
+	int clockCounter = 1;
+
 	while (1)
 	{
 		if (!input (game, elements))
 			return;
 
-		moveObjects (game, elements);
+		moveObjects (game, elements, clockCounter);
 
-		testColisions (game, elements);
+		if (!testColisions (game, elements))
+			return;
 
 		printScreen (game, elements);
 
 		usleep(CLOCK);		
+
+		clockCounter++;
 	}
 
 }
 
-void testColisions (t_game *game, t_elements *elements)
+int testColisions (t_game *game, t_elements *elements)
 {
 	testShotsColisions  (game, elements);
-/*	testBombsColisions  (game, elements);
-	testAliensColisions (game, elements);*/
+/*	if (!testAliensColisions (game, elements)
+ 		return 0;*/
+	if (!testBombsColisions  (game, elements))
+		return 0;
+
+	return 1;
 }
 
 void testShotsColisions (t_game *game, t_elements *elements)
 {
-/* testar com aliens, barreira, bombas, navemae e bordas */
-	inicializa_atual_inicio (&elements->shots);
+	listsCrashTest (&elements->shots, &elements->aliens);
+	listsCrashTest (&elements->shots, &elements->barriers);
+	listsCrashTest (&elements->shots, &elements->bombs);
+/*	listsCrashTest (&elements->shots, &elements->mothership);*/
+/*	removeShotOnBorder (game, &elements->shots);*/
+}
+
+int testBombsColisions (t_game *game, t_elements *elements)
+{
+	listsCrashTest (&elements->bombs, &elements->barriers);
+	listsCrashTest (&elements->bombs, &elements->spaceship);
+	if (lista_vazia (&elements->spaceship))
+		return 0;
+
+	return 1;
+}
+
+int testAliensColisions (t_game *game, t_elements *elements)
+{
+	/* testar diferente pois o alien nao morre */
+	listsCrashTest (&elements->aliens, &elements->barriers);
+/*	aliensLoseCondition (game, &elements->aliens);*/
+
+	return 1;
+}
+
+void listsCrashTest (t_lista *list1, t_lista *list2)
+{
+	/* ta errada ainda, tem q melhorar */
+	inicializa_atual_inicio (list1);
 
 	int xPos1, yPos1, xSize1, ySize1, type1, status1, speed1;
 	int xPos2, yPos2, xSize2, ySize2, type2, status2, speed2;
 
-
-/* MODULARIZAR */
-	while (consulta_item_atual (&xPos1, &yPos1, &xSize1, &ySize1, &type1, &status1, &speed1, &elements->shots))
+	while (consulta_item_atual (&xPos1, &yPos1, &xSize1, &ySize1, &type1, &status1, &speed1, list1))
 	{
-		inicializa_atual_inicio (&elements->aliens);
+		inicializa_atual_inicio (list2);
 
-		while (consulta_item_atual (&xPos2, &yPos2, &xSize2, &ySize2, &type2, &status2, &speed2, &elements->aliens))
+		while (consulta_item_atual (&xPos2, &yPos2, &xSize2, &ySize2, &type2, &status2, &speed2, list2))
 		{
 			if (crash (xPos1, yPos1, xSize1, ySize1, xPos2, yPos2, xSize2, ySize2))
 			{
-				remove_item_atual (&elements->aliens);
-				remove_item_atual (&elements->shots);
+				/* deve remover e sair do while interno */
+				remove_item_atual (list1);
+				remove_item_atual (list2);
 			}
 			
 			else
-				incrementa_atual (&elements->aliens);
+				incrementa_atual (list2);
 		}
 
-		incrementa_atual (&elements->shots);
+		incrementa_atual (list1);
 	}
 }
 
@@ -374,6 +413,8 @@ void addShot (t_elements *elements)
 
 void getSpaceshipShootingPos (int *x, int *y, t_elements *elements)
 {
+	inicializa_atual_inicio (&elements->spaceship);
+
 	int xPos, yPos, xSize, ySize, type, status, speed;
 	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->spaceship);
 
@@ -410,12 +451,16 @@ void getAlienShootingPos (int *x, int *y, t_elements *elements)
 
 void moveSpaceshipLeft (t_game *game, t_elements *elements)
 {
+	inicializa_atual_inicio (&elements->spaceship);
+
 	if (canMoveLeft (game, &elements->spaceship))
 		decrementa_y_atual (&elements->spaceship);	
 }
 
 void moveSpaceshipRight (t_game *game, t_elements *elements)
 {
+	inicializa_atual_inicio (&elements->spaceship);
+
 	if (canMoveRight (game, &elements->spaceship))
 		incrementa_y_atual (&elements->spaceship);	
 }
@@ -442,36 +487,41 @@ int canMoveRight (t_game *game, t_lista *list)
 	return 0;
 }
 
-void moveObjects (t_game *game, t_elements *elements)
+void moveObjects (t_game *game, t_elements *elements, int clock)
 {
 	moveShots (&elements->shots);
 
-/*	if (teste de tempo com contador % elements->aliens->speed)*/
-	moveAliens (game, elements);
+	moveAliens (game, elements, clock);
 
-/*	if (teste de tempo com contador % elements->bombs->speed)*/
-	moveBombs (&elements->bombs);
+	moveBombs (&elements->bombs, clock);
 
-/*	if (teste de tempo com contador % elements->mothership->speed)*/
-/*	moveMothership (game, elements);	*/
+/*	moveMothership (game, elements, clock);	*/
 }
 
-void moveAliens (t_game *game, t_elements *elements)
+void moveAliens (t_game *game, t_elements *elements, int clock)
 {
-	if (elements->aliensWay == 1)
-	{
-		if (aliensCanMoveRight (game, &elements->aliens))
-			moveAliensRight (elements);
-		else
-			moveAliensDown (elements);
-	}
+	inicializa_atual_inicio (&elements->aliens);
 
-	if (elements->aliensWay == -1)
+	int x, y, xSize, ySize, alienType, alienStatus, alienSpeed;
+	consulta_item_atual (&x, &y, &xSize, &ySize, &alienType, &alienStatus, &alienSpeed, &elements->aliens);
+
+	if ( clock % (100/alienSpeed) == 0 )
 	{
-		if (aliensCanMoveLeft (game, &elements->aliens))
-			moveAliensLeft (elements);
-		else
-			moveAliensDown (elements);
+		if (elements->aliensWay == 1)
+		{
+			if (aliensCanMoveRight (game, &elements->aliens))
+				moveAliensRight (elements);
+			else
+				moveAliensDown (elements);
+		}
+
+		if (elements->aliensWay == -1)
+		{
+			if (aliensCanMoveLeft (game, &elements->aliens))
+				moveAliensLeft (elements);
+			else
+				moveAliensDown (elements);
+		}
 	}
 }
 
@@ -563,13 +613,16 @@ void moveShots (t_lista *shots)
 		incrementa_atual (shots);
 }
 
-void moveBombs (t_lista *bombs)
+void moveBombs (t_lista *bombs, int clock)
 {
-	if (!inicializa_atual_inicio (bombs))
-		return;
+	if (clock % (100/BOMB_SPEED) == 0)
+	{
+		if (!inicializa_atual_inicio (bombs))
+			return;
 
-	while (incrementa_x_atual (bombs))
-		incrementa_atual (bombs);
+		while (incrementa_x_atual (bombs))
+			incrementa_atual (bombs);
+	}
 }
 
 
