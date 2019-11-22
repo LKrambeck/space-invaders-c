@@ -71,7 +71,7 @@ int consulta_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *tip
   Faz o atual apontar para o sucessor do nodo removido.
   Retorna 1 se houve sucesso e zero caso contrário.
 */
-int remove_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *tipo, int *status, int *speed, t_lista *l);
+int remove_item_atual(t_lista *l);
 
 /*
   Incrementa/decrementa o pos_x ou pos_y do nodo atual.

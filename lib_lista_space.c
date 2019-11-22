@@ -131,7 +131,7 @@ int consulta_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *tip
 	return 1;
 }
 
-int remove_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tipo, int *tam_y, int *status, int *speed, t_lista *l)
+int remove_item_atual(t_lista *l)
 {
 	if (l->atual == NULL)
 		return 0;
@@ -145,13 +145,6 @@ int remove_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tipo, int *tam_y,
 
 	l->atual = p->prox;
 
-	*pos_x = p->pos_x;
-	*pos_y = p->pos_y;
-	*tam_x = p->tam_x;
-	*tam_y = p->tam_y;
-	*tipo = p->tipo;
-	*status = p->status;
-	*speed = p->speed;
 	free (p);
 
 	return 1;
