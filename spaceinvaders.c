@@ -8,6 +8,29 @@
 #define SHOT_SPEED 50
 #define BOMB_SPEED 30
 
+#define ALIEN1_1 " AAA "
+#define ALIEN1_2 "AMMMA"
+#define ALIEN1_3 "/-X-\\"
+#define ALIEN2_1 ".v_v."
+#define ALIEN2_2 "}WMW{"
+#define ALIEN2_3 " / \\ "
+#define ALIEN3_1 " nmn "
+#define ALIEN3_2 "dbMdb"
+#define ALIEN3_3 "_/-\\_"
+#define BARRIER1 "A"
+#define BARRIER2 "M"
+#define SPACESHIP1 " /^\\ "
+#define SPACESHIP2 "MMMMM"
+#define SHOT "|"
+#define BOMB "$"
+#define EXPLOSION1 " \\'/ "
+#define EXPLOSION2 "-   -"
+#define EXPLOSION3 " /,\\ "
+#define MOTHERSHIP1 " /MMMMM\\ " 
+#define MOTHERSHIP2 "AMoMoMoMA"
+#define MOTHERSHIP3 " \\/'-'\\/ "
+
+
 typedef struct Game {
 	int score;
 	int level;
