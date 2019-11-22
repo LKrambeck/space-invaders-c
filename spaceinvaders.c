@@ -44,6 +44,8 @@ int  canMoveLeft                   (t_game *game, t_lista *list);
 int  canMoveRight                  (t_game *game, t_lista *list);
 void moveObjects                   (t_game *game, t_elements *elements);
 void moveAliens                    (t_game *game, t_elements *elements);
+int  aliensCanMoveRight            (t_game *game, t_lista *aliens);
+void moveAliensRight               (t_lista *aliens);
 void printScreen                   (t_game *game, t_elements *elements);
 void printBorders                  (t_game *game);
 void printAllAliens                (t_elements *elements);
@@ -107,6 +109,7 @@ void startGame(t_game *game, t_elements *elements)
 {
 	game->score = 0;
 	game->level = 1;
+	elements->aliensWay = 1;
 
 	inicializeLists (elements);
 
@@ -297,26 +300,41 @@ void moveObjects (t_game *game, t_elements *elements)
 
 void moveAliens (t_game *game, t_elements *elements)
 {
-	if (!inicializa_atual_inicio (&elements->aliens))
-		return;
-
-	int xPos, yPos, xSize, ySize, type, status, speed;	
-
 	if (elements->aliensWay == 1)
-		while (canMoveLeft (game, &elements->aliens))
-		{
-			incrementa_y_atual (&elements->aliens);
-			incrementa_atual (&elements->aliens);
-		}
-
-	else
-		while (canMoveLeft (game, &elements->aliens))
-		{
-			decrementa_y_atual (&elements->aliens);
-			incrementa_atual (&elements->aliens);
-		}
+		if (aliensCanMoveRight (game, &elements->aliens))
+			moveAliensRight (&elements->aliens);
+/*		else
+			moveAliensDown (&elements->aliens);*/
 }
 
+int aliensCanMoveRight (t_game *game, t_lista *aliens)
+{
+	if (!inicializa_atual_inicio (aliens))
+		return 0;
+
+	int i;
+	int noAliens;
+
+	tamanho_lista (&noAliens, aliens);
+
+	for (i=0; i < noAliens; i++)
+	{
+		if (!canMoveRight(game, aliens))
+			return 0;
+
+		incrementa_atual (aliens);
+	}
+
+	return 1;
+}
+
+void moveAliensRight (t_lista *aliens)
+{
+	inicializa_atual_inicio (aliens);
+
+	while (incrementa_y_atual(aliens))
+		incrementa_atual (aliens);
+}
 
 
 

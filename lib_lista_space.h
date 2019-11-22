@@ -76,6 +76,6 @@ int remove_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *tipo,
 /*
   Incrementa/decrementa o pos_x ou pos_y do nodo atual.
 */
-void incrementa_y_atual (t_lista *l);
-void decrementa_y_atual (t_lista *l);
-void incrementa_x_atual (t_lista *l);
+int incrementa_y_atual (t_lista *l);
+int decrementa_y_atual (t_lista *l);
+int incrementa_x_atual (t_lista *l);

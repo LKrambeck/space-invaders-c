@@ -157,36 +157,42 @@ int remove_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tipo, int *tam_y,
 	return 1;
 }
 
-void incrementa_y_atual (t_lista *l)
+int incrementa_y_atual (t_lista *l)
 {
 	if (l->atual == NULL)
-		return;
+		return 0;
 
 	if (l->atual == l->ini || l->atual == l->fim)
-		return;
+		return 0;
 
 	l->atual->pos_y++;
+
+	return 1;
 }
 
-void decrementa_y_atual (t_lista *l)
+int decrementa_y_atual (t_lista *l)
 {
 	if (l->atual == NULL)
-		return;
+		return 0;
 
 	if (l->atual == l->ini || l->atual == l->fim)
-		return;
+		return 0;
 
 	l->atual->pos_y--;	
+
+	return 1;
 }
 
-void incrementa_x_atual (t_lista *l)
+int incrementa_x_atual (t_lista *l)
 {
 	if (l->atual == NULL)
-		return;
+		return 0;
 
 	if (l->atual == l->ini || l->atual == l->fim)
-		return;
+		return 0;
 
 	l->atual->pos_x++;	
+
+	return 1;
 }
 
