@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <ncurses.h>
 #include <time.h>
+#include <string.h>
 
 #include "lib_lista_space.h"
 
@@ -10,7 +11,7 @@
 #define BOMB_SPEED      40
 #define ALIEN_SPEED     30
 #define SPACESHIP_SPEED 40
-#define BOMB_FREQUENCY  1
+#define BOMB_FREQUENCY  8
 
 #define ALIEN1_1        " AAA "
 #define ALIEN1_2        "AMMMA"
@@ -68,6 +69,7 @@ int  input                         (t_game *game, t_elements *elements);
 void testShotsColisions            (t_elements *elements);
 int  testBombsColisions            (t_elements *elements);
 int  testAliensColisions           (t_game *game, t_elements *elements);
+int  hitSpaceship                  (t_lista *bombs, t_lista *spaceship);
 void removeShotOnBorder            (t_lista *shots);
 int  aliensLoseCondition           (t_game *game, t_lista *aliens);
 void listsCrashTest                (t_lista *list1, t_lista *list2);
@@ -108,6 +110,7 @@ void printBombs                    (t_elements *elements);
 void printSpaceship                (t_elements *elements);
 void printScore                    (t_game *game);
 int  nDigits                       (int n);
+void printLose                     (t_game *game);
 
 
 
@@ -287,7 +290,11 @@ void playGame(t_game *game, t_elements *elements)
 		moveObjects (game, elements, clockCounter);
 
 		if (!testColisions (game, elements))
+		{
+			printLose (game);
+			sleep (3);
 			return;
+		}
 
 		printScreen (game, elements);
 
@@ -311,7 +318,6 @@ int testColisions (t_game *game, t_elements *elements)
 
 void testShotsColisions (t_elements *elements)
 {
-	/* colisao dos aliens bugada */
 	listsCrashTest (&elements->shots, &elements->aliens);
 	listsCrashTest (&elements->shots, &elements->barriers);
 	listsCrashTest (&elements->shots, &elements->bombs);
@@ -337,12 +343,31 @@ void removeShotOnBorder (t_lista *shots)
 int testBombsColisions (t_elements *elements)
 {
 	listsCrashTest (&elements->bombs, &elements->barriers);
-/*	bugadasso
- *	listsCrashTest (&elements->bombs, &elements->spaceship);*/
-	if (lista_vazia (&elements->spaceship))
+	if (hitSpaceship (&elements->bombs, &elements->spaceship))
 		return 0;
 
 	return 1;
+}
+
+int hitSpaceship (t_lista *bombs, t_lista *spaceship)
+{
+	inicializa_atual_inicio (bombs);
+	inicializa_atual_inicio (spaceship);
+
+	int xPosB, yPosB, xSizeB, ySizeB, typeB, statusB, speedB;
+	int xPosS, yPosS, xSizeS, ySizeS, typeS, statusS, speedS;
+
+	consulta_item_atual (&xPosS, &yPosS, &xSizeS, &ySizeS, &typeS, &statusS, &speedS, spaceship);
+
+	while (consulta_item_atual (&xPosB, &yPosB, &xSizeB, &ySizeB, &typeB, &statusB, &speedB, bombs))
+	{
+		if (crash (xPosB, yPosB, xSizeB, ySizeB, xPosS, yPosS, xSizeS, ySizeS))
+			return 1;
+
+		incrementa_atual (bombs);
+	}
+
+	return 0;	
 }
 
 int testAliensColisions (t_game *game, t_elements *elements)
@@ -373,7 +398,6 @@ int aliensLoseCondition (t_game *game, t_lista *aliens)
 
 void listsCrashTest (t_lista *list1, t_lista *list2)
 {
-	/* ta errada ainda, tem q melhorar */
 	inicializa_atual_inicio (list1);
 
 	int xPos1, yPos1, xSize1, ySize1, type1, status1, speed1;
@@ -436,6 +460,9 @@ int input (t_game *game, t_elements *elements)
 	return 1;	
 }
 
+/* 
+ * ================ ADD ELEMENTS ===============
+*/
 void addShot (t_elements *elements)
 {
 	int xPos, yPos;
@@ -568,12 +595,9 @@ int aliensCanMoveRight (t_game *game, t_lista *aliens)
 	if (!inicializa_atual_inicio (aliens))
 		return 0;
 
-	int i;
-	int noAliens;
+	int xPos, yPos, xSize, ySize, type, status, speed;
 
-	tamanho_lista (&noAliens, aliens);
-
-	for (i=0; i < noAliens; i++)
+	while (consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, aliens))
 	{
 		if (!canMoveRight(game, aliens))
 			return 0;
@@ -602,12 +626,9 @@ int aliensCanMoveLeft (t_game *game, t_lista *aliens)
 	if (!inicializa_atual_inicio (aliens))
 		return 0;
 
-	int i;
-	int noAliens;
+	int xPos, yPos, xSize, ySize, type, status, speed;
 
-	tamanho_lista (&noAliens, aliens);
-
-	for (i=0; i < noAliens; i++)
+	while (consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, aliens))
 	{
 		if (!canMoveLeft(game, aliens))
 			return 0;
@@ -818,4 +839,14 @@ int nDigits (int n)
 		return 0;
 
 	return 1 + (nDigits (n/10));
+}
+
+/* arrumar */
+void printLose (t_game *game)
+{
+	char loseMessege[20] = "AAAAAAAAAAAAAAAAAAA";
+	int messegeSize = strlen (loseMessege);
+
+	mvprintw (4, (game->maxCols - messegeSize)/2, "%s", loseMessege);
+
 }
