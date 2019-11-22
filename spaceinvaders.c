@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <ncurses.h>
+#include <time.h>
 
 #include "lib_lista_space.h"
 
@@ -9,6 +10,7 @@
 #define BOMB_SPEED      30
 #define ALIEN_SPEED     20
 #define SPACESHIP_SPEED 40
+#define BOMB_FREQUENCY  5
 
 #define ALIEN1_1        " AAA "
 #define ALIEN1_2        "AMMMA"
@@ -85,8 +87,8 @@ void moveBombs                     (t_lista *bombs);
 void moveSpaceshipLeft             (t_game *game, t_elements *elements);
 void moveSpaceshipRight            (t_game *game, t_elements *elements);
 void moveAliens                    (t_game *game, t_elements *elements);
-void moveAliensRight               (t_lista *aliens);
-void moveAliensLeft                (t_lista *aliens);
+void moveAliensRight               (t_elements *elements);
+void moveAliensLeft                (t_elements *elements);
 void moveAliensDown                (t_elements *elements);
 int  aliensCanMoveRight            (t_game *game, t_lista *aliens);
 int  aliensCanMoveLeft             (t_game *game, t_lista *aliens);
@@ -109,6 +111,8 @@ int main ()
 {
 	t_game game;
 	t_elements elements;
+
+	srand (time(0));
 
 	if (!setupInput (&game))
 		return 1;
@@ -393,7 +397,7 @@ void addBomb (t_elements *elements)
 void getAlienShootingPos (int *x, int *y, t_elements *elements)
 {
 	int xPos, yPos, xSize, ySize, type, status, speed;
-	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->bombs);
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->aliens);
 
 	*x = xPos + xSize;
 	*y = yPos + ySize/2;
@@ -457,7 +461,7 @@ void moveAliens (t_game *game, t_elements *elements)
 	if (elements->aliensWay == 1)
 	{
 		if (aliensCanMoveRight (game, &elements->aliens))
-			moveAliensRight (&elements->aliens);
+			moveAliensRight (elements);
 		else
 			moveAliensDown (elements);
 	}
@@ -465,7 +469,7 @@ void moveAliens (t_game *game, t_elements *elements)
 	if (elements->aliensWay == -1)
 	{
 		if (aliensCanMoveLeft (game, &elements->aliens))
-			moveAliensLeft (&elements->aliens);
+			moveAliensLeft (elements);
 		else
 			moveAliensDown (elements);
 	}
@@ -492,12 +496,17 @@ int aliensCanMoveRight (t_game *game, t_lista *aliens)
 	return 1;
 }
 
-void moveAliensRight (t_lista *aliens)
+void moveAliensRight (t_elements *elements)
 {
-	inicializa_atual_inicio (aliens);
+	inicializa_atual_inicio (&elements->aliens);
 
-	while (incrementa_y_atual(aliens))
-		incrementa_atual (aliens);
+	while (incrementa_y_atual(&elements->aliens))
+	{
+		if (rand()%(10000/BOMB_FREQUENCY) == 0)
+			addBomb (elements);
+
+		incrementa_atual (&elements->aliens);
+	}
 }
 
 int aliensCanMoveLeft (t_game *game, t_lista *aliens)
@@ -521,12 +530,17 @@ int aliensCanMoveLeft (t_game *game, t_lista *aliens)
 	return 1;
 }
 
-void moveAliensLeft (t_lista *aliens)
+void moveAliensLeft (t_elements *elements)
 {
-	inicializa_atual_inicio (aliens);
+	inicializa_atual_inicio (&elements->aliens);
 
-	while (decrementa_y_atual(aliens))
-		incrementa_atual (aliens);
+	while (decrementa_y_atual(&elements->aliens))
+	{
+		if (rand()%(10000/BOMB_FREQUENCY) == 0)
+			addBomb (elements);
+
+		incrementa_atual (&elements->aliens);
+	}
 }
 
 void moveAliensDown (t_elements *elements)
@@ -673,9 +687,7 @@ void printShots (t_elements *elements)
 
 	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->shots))
 	{
-		if (status == 0)
-			mvaddch (xPos, yPos, '|');
-		
+		mvaddch (xPos, yPos, SHOT);
 		incrementa_atual (&elements->shots);
 	}
 }
@@ -689,9 +701,7 @@ void printBombs (t_elements *elements)
 
 	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->bombs))
 	{
-		if (status == 0)
-			mvaddch (xPos, yPos, '$');
-		
+		mvaddch (xPos, yPos, BOMB);
 		incrementa_atual (&elements->bombs);
 	}
 }
