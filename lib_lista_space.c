@@ -196,3 +196,15 @@ int incrementa_x_atual (t_lista *l)
 	return 1;
 }
 
+int decrementa_x_atual (t_lista *l)
+{
+	if (l->atual == NULL)
+		return 0;
+
+	if (l->atual == l->ini || l->atual == l->fim)
+		return 0;
+
+	l->atual->pos_x--;	
+
+	return 1;
+}
