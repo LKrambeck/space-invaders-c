@@ -4,32 +4,33 @@
 
 #include "lib_lista_space.h"
 
-#define CLOCK 80000
-#define SHOT_SPEED 50
-#define BOMB_SPEED 30
-#define ALIEN_SPEED 20
+#define CLOCK           50000
+#define SHOT_SPEED      50
+#define BOMB_SPEED      30
+#define ALIEN_SPEED     20
+#define SPACESHIP_SPEED 40
 
-#define ALIEN1_1 " AAA "
-#define ALIEN1_2 "AMMMA"
-#define ALIEN1_3 "/-X-\\"
-#define ALIEN2_1 ".v_v."
-#define ALIEN2_2 "}WMW{"
-#define ALIEN2_3 " / \\ "
-#define ALIEN3_1 " nmn "
-#define ALIEN3_2 "dbMdb"
-#define ALIEN3_3 "_/-\\_"
-#define BARRIER1 'A'
-#define BARRIER2 'M'
-#define SPACESHIP1 " /^\\ "
-#define SPACESHIP2 "MMMMM"
-#define SHOT '|'
-#define BOMB '$'
-#define EXPLOSION1 " \\'/ "
-#define EXPLOSION2 "-   -"
-#define EXPLOSION3 " /,\\ "
-#define MOTHERSHIP1 " /MMMMM\\ " 
-#define MOTHERSHIP2 "AMoMoMoMA"
-#define MOTHERSHIP3 " \\/'-'\\/ "
+#define ALIEN1_1        " AAA "
+#define ALIEN1_2        "AMMMA"
+#define ALIEN1_3        "/-X-\\"
+#define ALIEN2_1        ".v_v."
+#define ALIEN2_2        "}WMW{"
+#define ALIEN2_3        " / \\ "
+#define ALIEN3_1        " nmn "
+#define ALIEN3_2        "dbMdb"
+#define ALIEN3_3        "_/-\\_"
+#define BARRIER1        'A'
+#define BARRIER2        'M'
+#define SPACESHIP1      " /^\\ "
+#define SPACESHIP2      "MMMMM"
+#define SHOT            '|'
+#define BOMB            '$'
+#define EXPLOSION1      " \\'/ "
+#define EXPLOSION2      "-   -"
+#define EXPLOSION3      " /,\\ "
+#define MOTHERSHIP1     " /MMMMM\\ " 
+#define MOTHERSHIP2     "AMoMoMoMA"
+#define MOTHERSHIP3     " \\/'-'\\/ "
 
 
 typedef struct Game {
@@ -259,9 +260,8 @@ void addSpaceship (t_game *game, t_elements *elements)
 	int yIni = (game->maxCols-ySize)/2;
 	int spaceshipType = 0;
 	int spaceshipStatus = 0;
-	int spaceshipSpeed = 4;
 
-	insere_fim_lista (xIni, yIni, xSize, ySize, spaceshipType, spaceshipStatus, spaceshipSpeed, &elements->spaceship);
+	insere_fim_lista (xIni, yIni, xSize, ySize, spaceshipType, spaceshipStatus, SPACESHIP_SPEED, &elements->spaceship);
 
 	inicializa_atual_inicio (&elements->spaceship);
 }
@@ -702,11 +702,8 @@ void printSpaceship (t_elements *elements)
 
 	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->spaceship);
 
-	int i, j;
-
-	for (i=xPos; i < (xPos+xSize); i++)
-		for (j=yPos; j < (yPos+ySize); j++)
-			mvaddch (i,j,'S');
+	mvprintw (xPos  , yPos, SPACESHIP1);
+	mvprintw (xPos+1, yPos, SPACESHIP2);
 }
 
 void printScore (t_game *game)
