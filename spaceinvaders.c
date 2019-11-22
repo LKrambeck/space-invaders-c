@@ -4,7 +4,7 @@
 
 #include "lib_lista_space.h"
 
-#define CLOCK 100000
+#define CLOCK 10000
 #define SHOT_SPEED 50
 
 typedef struct Game {
@@ -37,6 +37,10 @@ void playGame                      (t_game *game, t_elements *elements);
 int  input                         (t_game *game, t_elements *elements);
 void addShot                       (t_elements *elements);
 void getSpaceshipShootingPos       (int *x, int *y, t_elements *elements);
+void moveSpaceshipLeft             (t_game *game, t_elements *elements);
+void moveSpaceshipRight            (t_game *game, t_elements *elements);
+int  canMoveLeft                   (t_game *game, t_lista *list);
+int  canMoveRight                  (t_game *game, t_lista *list);
 void printScreen                   (t_game *game, t_elements *elements);
 void printBorders                  (t_game *game);
 void printAllAliens                (t_elements *elements);
@@ -210,7 +214,7 @@ int input (t_game *game, t_elements *elements)
 
 	if(key == ' ')
 		addShot (elements);
-/*
+
 	else if(key == KEY_LEFT)
 		moveSpaceshipLeft (game, elements);
 
@@ -219,7 +223,7 @@ int input (t_game *game, t_elements *elements)
 
 	else if (key == 'q')
 		return 0;
-*/
+
 	return 1;	
 }
 
@@ -242,7 +246,40 @@ void getSpaceshipShootingPos (int *x, int *y, t_elements *elements)
 	*y = yPos + 2;
 }
 
-void moveSpaceshipLeft (t_game *game, t_elements *elements);
+void moveSpaceshipLeft (t_game *game, t_elements *elements)
+{
+	if (canMoveLeft (game, &elements->spaceship))
+		decrementa_y_atual (&elements->spaceship);	
+}
+
+void moveSpaceshipRight (t_game *game, t_elements *elements)
+{
+	if (canMoveRight (game, &elements->spaceship))
+		incrementa_y_atual (&elements->spaceship);	
+}
+
+int canMoveLeft (t_game *game, t_lista *list)
+{
+	int xPos, yPos, xSize, ySize, status, speed;
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &status, &speed, list);
+	
+	if (yPos > 1)
+		return 1;
+
+	return 0;
+}
+
+int canMoveRight (t_game *game, t_lista *list)
+{
+	int xPos, yPos, xSize, ySize, status, speed;
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &status, &speed, list);
+	
+	if (yPos < game->maxCols -ySize -1)
+		return 1;
+
+	return 0;
+}
+
 
 
 
