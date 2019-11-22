@@ -4,7 +4,7 @@
 
 #include "lib_lista_space.h"
 
-#define CLOCK 10000
+#define CLOCK 30000
 #define SHOT_SPEED 50
 
 typedef struct Game {
@@ -30,14 +30,19 @@ int  setupInput                    (t_game *game);
 int  validateWindowSize            (int *rows, int *cols);
 void startGame                     (t_game *game, t_elements *elements);
 void inicializeLists               (t_elements *elements);
+void playGame                      (t_game *game, t_elements *elements);
+int  input                         (t_game *game, t_elements *elements);
+
+/* Add elements Lib */
 void addAliens                     (t_elements *elements);
 void addBarriers                   (t_game *game, t_elements *elements);
 void addSingleBarrier              (int i, int j, t_elements *elements);
 void addSpaceship                  (t_game *game, t_elements *elements);
-void playGame                      (t_game *game, t_elements *elements);
-int  input                         (t_game *game, t_elements *elements);
 void addShot                       (t_elements *elements);
 void getSpaceshipShootingPos       (int *x, int *y, t_elements *elements);
+
+
+/* Moving Lib */
 void moveSpaceshipLeft             (t_game *game, t_elements *elements);
 void moveSpaceshipRight            (t_game *game, t_elements *elements);
 int  canMoveLeft                   (t_game *game, t_lista *list);
@@ -46,6 +51,11 @@ void moveObjects                   (t_game *game, t_elements *elements);
 void moveAliens                    (t_game *game, t_elements *elements);
 int  aliensCanMoveRight            (t_game *game, t_lista *aliens);
 void moveAliensRight               (t_lista *aliens);
+int  aliensCanMoveLeft             (t_game *game, t_lista *aliens);
+void moveAliensLeft                (t_lista *aliens);
+void moveAliensDown                (t_elements *elements);
+
+/* Prints Lib */
 void printScreen                   (t_game *game, t_elements *elements);
 void printBorders                  (t_game *game);
 void printAllAliens                (t_elements *elements);
@@ -291,20 +301,35 @@ int canMoveRight (t_game *game, t_lista *list)
 
 void moveObjects (t_game *game, t_elements *elements)
 {
+	moveShots (game, elements);
+
 /*	if (teste de tempo com contador % elements->aliens->speed)*/
 	moveAliens (game, elements);
 
-/*	if (teste de tempo com contador % elements->aliens->speed)*/
+/*	if (teste de tempo com contador % elements->bombs->speed)*/
+/*	moveBombs (game, elements);*/
+
+/*	if (teste de tempo com contador % elements->mothership->speed)*/
 /*	moveMothership (game, elements);	*/
 }
 
 void moveAliens (t_game *game, t_elements *elements)
 {
 	if (elements->aliensWay == 1)
+	{
 		if (aliensCanMoveRight (game, &elements->aliens))
 			moveAliensRight (&elements->aliens);
-/*		else
-			moveAliensDown (&elements->aliens);*/
+		else
+			moveAliensDown (elements);
+	}
+
+	if (elements->aliensWay == -1)
+	{
+		if (aliensCanMoveLeft (game, &elements->aliens))
+			moveAliensLeft (&elements->aliens);
+		else
+			moveAliensDown (elements);
+	}
 }
 
 int aliensCanMoveRight (t_game *game, t_lista *aliens)
@@ -336,6 +361,45 @@ void moveAliensRight (t_lista *aliens)
 		incrementa_atual (aliens);
 }
 
+int aliensCanMoveLeft (t_game *game, t_lista *aliens)
+{
+	if (!inicializa_atual_inicio (aliens))
+		return 0;
+
+	int i;
+	int noAliens;
+
+	tamanho_lista (&noAliens, aliens);
+
+	for (i=0; i < noAliens; i++)
+	{
+		if (!canMoveLeft(game, aliens))
+			return 0;
+
+		incrementa_atual (aliens);
+	}
+
+	return 1;
+}
+
+void moveAliensLeft (t_lista *aliens)
+{
+	inicializa_atual_inicio (aliens);
+
+	while (decrementa_y_atual(aliens))
+		incrementa_atual (aliens);
+}
+
+void moveAliensDown (t_elements *elements)
+{
+	inicializa_atual_inicio (&elements->aliens);
+
+	while (incrementa_x_atual(&elements->aliens))
+		incrementa_atual (&elements->aliens);
+
+	/* Change the orientation of the aliens */
+	elements->aliensWay *= -1;	
+}
 
 
 
