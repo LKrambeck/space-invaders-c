@@ -244,6 +244,7 @@ void testColisions (t_game *game, t_elements *elements)
 
 void testShotsColisions (t_game *game, t_elements *elements)
 {
+/* testar com aliens, barreira, bombas, navemae e bordas */
 	inicializa_atual_inicio (&elements->shots);
 
 	int xPos1, yPos1, xSize1, ySize1, type1, status1, speed1;
@@ -262,8 +263,9 @@ void testShotsColisions (t_game *game, t_elements *elements)
 				remove_item_atual (&elements->aliens);
 				remove_item_atual (&elements->shots);
 			}
-
-			incrementa_atual (&elements->aliens);
+			
+			else
+				incrementa_atual (&elements->aliens);
 		}
 
 		incrementa_atual (&elements->shots);
@@ -368,8 +370,7 @@ void moveSpaceshipRight (t_game *game, t_elements *elements)
 int canMoveLeft (t_game *game, t_lista *list)
 {
 	int xPos, yPos, xSize, ySize, type, status, speed;
-	if (!consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, list))
-		return 0;
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, list);
 	
 	if (yPos > 1)
 		return 1;
@@ -380,8 +381,7 @@ int canMoveLeft (t_game *game, t_lista *list)
 int canMoveRight (t_game *game, t_lista *list)
 {
 	int xPos, yPos, xSize, ySize, type, status, speed;
-	if (!consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, list))
-		return 0;
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, list);
 	
 	if (yPos < game->maxCols -ySize -1)
 		return 1;
