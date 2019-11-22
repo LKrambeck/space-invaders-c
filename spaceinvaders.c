@@ -128,11 +128,11 @@ int main ()
 int setupInput (t_game *game)
 {
 	initscr();
-	cbreak();               /* desabilita o buffer de entrada */
-	noecho();               /* não mostra os caracteres digitados */
-	nodelay(stdscr, TRUE);  /* faz com que getch não aguarde a digitação */
-	keypad(stdscr, TRUE);   /* permite a leitura das setas */
-	curs_set(FALSE);        /* não mostra o cursor na tela */
+	cbreak();
+	noecho();
+	nodelay(stdscr, TRUE);
+	keypad(stdscr, TRUE);
+	curs_set(FALSE);
 
 	if (!validateWindowSize (game))
 		return 0;
