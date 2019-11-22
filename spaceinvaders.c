@@ -28,40 +28,41 @@ typedef struct Elements {
 	Prototypes 
 */
 int  setupInput                    (t_game *game);
-int  validateWindowSize            (int *rows, int *cols);
-void startGame                     (t_game *game, t_elements *elements);
+int  validateWindowSize            (t_game *game);
 void inicializeLists               (t_elements *elements);
+void startGame                     (t_game *game, t_elements *elements);
 void playGame                      (t_game *game, t_elements *elements);
+void moveObjects                   (t_game *game, t_elements *elements);
+void testColisions                 (t_game *game, t_elements *elements);
+void printScreen                   (t_game *game, t_elements *elements);
 int  input                         (t_game *game, t_elements *elements);
 
 /* Add elements Lib */
-void addAliens                     (t_elements *elements);
 void addBarriers                   (t_game *game, t_elements *elements);
-void addSingleBarrier              (int i, int j, t_elements *elements);
 void addSpaceship                  (t_game *game, t_elements *elements);
+void addAliens                     (t_elements *elements);
 void addShot                       (t_elements *elements);
-void getSpaceshipShootingPos       (int *x, int *y, t_elements *elements);
 void addBomb                       (t_elements *elements);
+void addSingleBarrier              (int i, int j, t_elements *elements);
+void getSpaceshipShootingPos       (int *x, int *y, t_elements *elements);
 void getAlienShootingPos           (int *x, int *y, t_elements *elements);
 
 
 /* Moving Lib */
-void moveSpaceshipLeft             (t_game *game, t_elements *elements);
-void moveSpaceshipRight            (t_game *game, t_elements *elements);
 int  canMoveLeft                   (t_game *game, t_lista *list);
 int  canMoveRight                  (t_game *game, t_lista *list);
-void moveObjects                   (t_game *game, t_elements *elements);
+void moveShots                     (t_lista *shots);
+void moveBombs                     (t_lista *bombs);
+void moveSpaceshipLeft             (t_game *game, t_elements *elements);
+void moveSpaceshipRight            (t_game *game, t_elements *elements);
 void moveAliens                    (t_game *game, t_elements *elements);
-int  aliensCanMoveRight            (t_game *game, t_lista *aliens);
-int  aliensCanMoveLeft             (t_game *game, t_lista *aliens);
 void moveAliensRight               (t_lista *aliens);
 void moveAliensLeft                (t_lista *aliens);
 void moveAliensDown                (t_elements *elements);
-void moveShots                     (t_lista *shots);
-void moveBombs                     (t_lista *bombs);
+int  aliensCanMoveRight            (t_game *game, t_lista *aliens);
+int  aliensCanMoveLeft             (t_game *game, t_lista *aliens);
 
 /* Prints Lib */
-void printScreen                   (t_game *game, t_elements *elements);
 void printBorders                  (t_game *game);
 void printAllAliens                (t_elements *elements);
 void printAlien                    (int xPos, int yPos, int xSize, int ySize);
@@ -100,20 +101,20 @@ int setupInput (t_game *game)
 	keypad(stdscr, TRUE);   /* permite a leitura das setas */
 	curs_set(FALSE);        /* não mostra o cursor na tela */
 
-	if (!validateWindowSize (&game->maxRows, &game->maxCols))
+	if (!validateWindowSize (game))
 		return 0;
 
 	return 1;
 }
 
-int validateWindowSize (int *rows, int *cols)
+int validateWindowSize (t_game *game)
 {
-	getmaxyx (stdscr, *rows, *cols);
+	getmaxyx (stdscr, game->maxRows, game->maxCols);
 
-	if (*rows < 38 || *cols < 100)
+	if (game->maxRows < 38 || game->maxCols < 100)
 	{
 		endwin();
-		printf ("Window is too small.\nMinimum size: 38x100.\nCurrent size: %dx%d\n",*rows,*cols);
+		printf ("Window is too small.\nMinimum size: 38x100.\nCurrent size: %dx%d\n",game->maxRows,game->maxCols);
 		return 0;
 	}
 
@@ -220,9 +221,9 @@ void playGame(t_game *game, t_elements *elements)
 			return;
 
 		moveObjects (game, elements);
-/*
-		testColisions (elements);
-*/
+
+/*		testColisions (elements);*/
+
 		printScreen (game, elements);
 
 		usleep(CLOCK);		
@@ -342,7 +343,7 @@ void moveObjects (t_game *game, t_elements *elements)
 	moveAliens (game, elements);
 
 /*	if (teste de tempo com contador % elements->bombs->speed)*/
-	moveBombs (game, elements);
+	moveBombs (&elements->bombs);
 
 /*	if (teste de tempo com contador % elements->mothership->speed)*/
 /*	moveMothership (game, elements);	*/
