@@ -5,12 +5,12 @@
 
 #include "lib_lista_space.h"
 
-#define CLOCK           50000
+#define CLOCK           20000
 #define SHOT_SPEED      50
 #define BOMB_SPEED      40
-#define ALIEN_SPEED     20
+#define ALIEN_SPEED     30
 #define SPACESHIP_SPEED 40
-#define BOMB_FREQUENCY  50
+#define BOMB_FREQUENCY  1
 
 #define ALIEN1_1        " AAA "
 #define ALIEN1_2        "AMMMA"
@@ -65,9 +65,11 @@ void printScreen                   (t_game *game, t_elements *elements);
 int  input                         (t_game *game, t_elements *elements);
 
 /* Colisions Lib */
-void testShotsColisions            (t_game *game, t_elements *elements);
-int  testBombsColisions            (t_game *game, t_elements *elements);
+void testShotsColisions            (t_elements *elements);
+int  testBombsColisions            (t_elements *elements);
 int  testAliensColisions           (t_game *game, t_elements *elements);
+void removeShotOnBorder            (t_lista *shots);
+int  aliensLoseCondition           (t_game *game, t_lista *aliens);
 void listsCrashTest                (t_lista *list1, t_lista *list2);
 int  crash                         (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size);
 
@@ -190,7 +192,7 @@ void addAliens (t_elements *elements)
 	int ySize = 5;
 	int xSpacing = 4;
 	int ySpacing = 7;
-	int alienStatus = 0;
+	int alienStatus = 1;
 	int alienType;
 
 	int i, j, row = 1;
@@ -234,7 +236,7 @@ void addBarriers (t_game *game, t_elements *elements)
 	
 void addSingleBarrier (int xPos, int yPos, t_elements *elements)
 {
-	int barrierStatus = 0;
+	int barrierStatus = 5;
 	int barrierSpeed = 0;
 	int xSize = 3;
 	int ySize = 7;
@@ -298,28 +300,45 @@ void playGame(t_game *game, t_elements *elements)
 
 int testColisions (t_game *game, t_elements *elements)
 {
-	testShotsColisions  (game, elements);
-/*	if (!testAliensColisions (game, elements)
- 		return 0;*/
-	if (!testBombsColisions  (game, elements))
+	testShotsColisions  (elements);
+	if (!testAliensColisions (game, elements))
+ 		return 0;
+	if (!testBombsColisions  (elements))
 		return 0;
 
 	return 1;
 }
 
-void testShotsColisions (t_game *game, t_elements *elements)
+void testShotsColisions (t_elements *elements)
 {
+	/* colisao dos aliens bugada */
 	listsCrashTest (&elements->shots, &elements->aliens);
 	listsCrashTest (&elements->shots, &elements->barriers);
 	listsCrashTest (&elements->shots, &elements->bombs);
 /*	listsCrashTest (&elements->shots, &elements->mothership);*/
-/*	removeShotOnBorder (game, &elements->shots);*/
+	removeShotOnBorder (&elements->shots);
 }
 
-int testBombsColisions (t_game *game, t_elements *elements)
+void removeShotOnBorder (t_lista *shots)
+{
+	inicializa_atual_inicio (shots);
+
+	int xPos, yPos, xSize, ySize, type, status, speed;
+
+	while (consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, shots))
+	{
+		if (xPos <= 0)
+			remove_item_atual (shots);
+
+		incrementa_atual (shots);
+	}
+}
+
+int testBombsColisions (t_elements *elements)
 {
 	listsCrashTest (&elements->bombs, &elements->barriers);
-	listsCrashTest (&elements->bombs, &elements->spaceship);
+/*	bugadasso
+ *	listsCrashTest (&elements->bombs, &elements->spaceship);*/
 	if (lista_vazia (&elements->spaceship))
 		return 0;
 
@@ -328,11 +347,28 @@ int testBombsColisions (t_game *game, t_elements *elements)
 
 int testAliensColisions (t_game *game, t_elements *elements)
 {
-	/* testar diferente pois o alien nao morre */
 	listsCrashTest (&elements->aliens, &elements->barriers);
-/*	aliensLoseCondition (game, &elements->aliens);*/
+	if (aliensLoseCondition (game, &elements->aliens))
+ 		return 0;
 
 	return 1;
+}
+
+int aliensLoseCondition (t_game *game, t_lista *aliens)
+{
+	inicializa_atual_inicio (aliens);
+
+	int xPos, yPos, xSize, ySize, type, status, speed;
+
+	while (consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, aliens))
+	{
+		if ((xPos+xSize-1) >= (game->maxRows-3))
+			return 1;
+		
+		incrementa_atual (aliens);
+	}
+
+	return 0;	
 }
 
 void listsCrashTest (t_lista *list1, t_lista *list2)
@@ -351,8 +387,10 @@ void listsCrashTest (t_lista *list1, t_lista *list2)
 		{
 			if (crash (xPos1, yPos1, xSize1, ySize1, xPos2, yPos2, xSize2, ySize2))
 			{
-				/* deve remover e sair do while interno */
-				remove_item_atual (list1);
+				/* If a alien colide with a barrier, the alien doesnt die */	
+				if (!((status1 == 1 || status1 == 2) && status2 == 5))
+					remove_item_atual (list1);
+
 				remove_item_atual (list2);
 			}
 			
@@ -677,12 +715,8 @@ void printAllAliens (t_elements *elements)
 
 	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->aliens))
 	{
-		if (status == 0)
-				printAlien (xPos, yPos, type);
+		printAlien (xPos, yPos, type);
 
-/*		if (status == 2)
-				printExplosion (xPos, yPos);*/
-		
 		incrementa_atual (&elements->aliens);
 	}
 }
