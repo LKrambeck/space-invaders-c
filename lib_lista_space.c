@@ -68,7 +68,7 @@ int tamanho_lista(int *tam, t_lista *l)
 	return 1;
 }
 
-int insere_fim_lista(int pos_x, int pos_y, int tam_x, int tam_y, int status, int speed, t_lista *l)
+int insere_fim_lista(int pos_x, int pos_y, int tam_x, int tam_y, int tipo, int status, int speed, t_lista *l)
 {
 	t_nodo *new;
 	new = (t_nodo*) malloc (sizeof (t_nodo));
@@ -79,6 +79,7 @@ int insere_fim_lista(int pos_x, int pos_y, int tam_x, int tam_y, int status, int
 	new->pos_y = pos_y;
 	new->tam_x = tam_x;
 	new->tam_y = tam_y;
+	new->tipo = tipo;
 	new->status = status;
 	new->speed = speed;
 	new->prox = l->fim;
@@ -112,7 +113,7 @@ void incrementa_atual(t_lista *l)
 	l->atual = l->atual->prox;
 }
 
-int consulta_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *status, int *speed, t_lista *atual)
+int consulta_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *tipo, int *status, int *speed, t_lista *atual)
 {
 	if (atual->atual == NULL) 
 		return 0;
@@ -124,12 +125,13 @@ int consulta_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *sta
 	*pos_y = atual->atual->pos_y;
 	*tam_x = atual->atual->tam_x;
 	*tam_y = atual->atual->tam_y;
+	*tipo = atual->atual->tipo;
 	*status = atual->atual->status;
 	*speed = atual->atual->speed;
 	return 1;
 }
 
-int remove_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *status, int *speed, t_lista *l)
+int remove_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tipo, int *tam_y, int *status, int *speed, t_lista *l)
 {
 	if (l->atual == NULL)
 		return 0;
@@ -147,9 +149,44 @@ int remove_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *statu
 	*pos_y = p->pos_y;
 	*tam_x = p->tam_x;
 	*tam_y = p->tam_y;
+	*tipo = p->tipo;
 	*status = p->status;
 	*speed = p->speed;
 	free (p);
 
 	return 1;
 }
+
+void incrementa_y_atual (t_lista *l)
+{
+	if (l->atual == NULL)
+		return;
+
+	if (l->atual == l->ini || l->atual == l->fim)
+		return;
+
+	l->atual->pos_y++;
+}
+
+void decrementa_y_atual (t_lista *l)
+{
+	if (l->atual == NULL)
+		return;
+
+	if (l->atual == l->ini || l->atual == l->fim)
+		return;
+
+	l->atual->pos_y--;	
+}
+
+void incrementa_x_atual (t_lista *l)
+{
+	if (l->atual == NULL)
+		return;
+
+	if (l->atual == l->ini || l->atual == l->fim)
+		return;
+
+	l->atual->pos_x++;	
+}
+

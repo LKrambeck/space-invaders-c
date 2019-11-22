@@ -11,7 +11,7 @@ typedef struct Game {
 	int score;
 	int level;
 	int maxRows;
-	int maxCols;
+	int maxCols;	
 } t_game;
 
 typedef struct Elements {
@@ -20,6 +20,7 @@ typedef struct Elements {
 	t_lista shots;
 	t_lista bombs;
 	t_lista spaceship;
+	int aliensWay;
 } t_elements;
 
 /*
@@ -41,6 +42,8 @@ void moveSpaceshipLeft             (t_game *game, t_elements *elements);
 void moveSpaceshipRight            (t_game *game, t_elements *elements);
 int  canMoveLeft                   (t_game *game, t_lista *list);
 int  canMoveRight                  (t_game *game, t_lista *list);
+void moveObjects                   (t_game *game, t_elements *elements);
+void moveAliens                    (t_game *game, t_elements *elements);
 void printScreen                   (t_game *game, t_elements *elements);
 void printBorders                  (t_game *game);
 void printAllAliens                (t_elements *elements);
@@ -140,7 +143,7 @@ void addAliens (t_elements *elements)
 
 	for (i = xIni; i < (5 * xSpacing + xIni); i += xSpacing)
 		for (j = yIni; j < (11 * ySpacing + yIni); j+= ySpacing)
-			insere_fim_lista (i, j, xSize, ySize, alienStatus, alienSpeed, &elements->aliens);
+			insere_fim_lista (i, j, xSize, ySize, 0, alienStatus, alienSpeed, &elements->aliens);
 }
 
 void addBarriers (t_game *game, t_elements *elements)
@@ -173,7 +176,7 @@ void addSingleBarrier (int xPos, int yPos, t_elements *elements)
 
 	for (i = xPos; i < (xPos + xSize); i++)
 		for (j = yPos; j < (yPos + ySize); j++) 
-			insere_fim_lista (i, j, 1, 1, barrierStatus, barrierSpeed, &elements->barriers);
+			insere_fim_lista (i, j, 1, 1, 0, barrierStatus, barrierSpeed, &elements->barriers);
 }
 
 void addSpaceship (t_game *game, t_elements *elements)
@@ -182,10 +185,11 @@ void addSpaceship (t_game *game, t_elements *elements)
 	int ySize = 5;
 	int xIni = game->maxRows-xSize-1;
 	int yIni = (game->maxCols-ySize)/2;
+	int spaceshipType = 0;
 	int spaceshipStatus = 0;
 	int spaceshipSpeed = 4;
 
-	insere_fim_lista (xIni, yIni, xSize, ySize, spaceshipStatus, spaceshipSpeed, &elements->spaceship);
+	insere_fim_lista (xIni, yIni, xSize, ySize, spaceshipType, spaceshipStatus, spaceshipSpeed, &elements->spaceship);
 
 	inicializa_atual_inicio (&elements->spaceship);
 }
@@ -196,9 +200,9 @@ void playGame(t_game *game, t_elements *elements)
 	{
 		if (!input (game, elements))
 			return;
-/*
-		moveObjects (game, elements);
 
+		moveObjects (game, elements);
+/*
 		testColisions (elements);
 */
 		printScreen (game, elements);
@@ -234,13 +238,13 @@ void addShot (t_elements *elements)
 
 	getSpaceshipShootingPos (&xPos, &yPos, elements);
 
-	insere_fim_lista (xPos, yPos, 1, 1, shotStatus, SHOT_SPEED, &elements->shots);
+	insere_fim_lista (xPos, yPos, 1, 1, 0, shotStatus, SHOT_SPEED, &elements->shots);
 }
 
 void getSpaceshipShootingPos (int *x, int *y, t_elements *elements)
 {
-	int xPos, yPos, xSize, ySize, status, speed;
-	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->spaceship);
+	int xPos, yPos, xSize, ySize, type, status, speed;
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->spaceship);
 
 	*x = xPos - 1;
 	*y = yPos + 2;
@@ -260,8 +264,9 @@ void moveSpaceshipRight (t_game *game, t_elements *elements)
 
 int canMoveLeft (t_game *game, t_lista *list)
 {
-	int xPos, yPos, xSize, ySize, status, speed;
-	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &status, &speed, list);
+	int xPos, yPos, xSize, ySize, type, status, speed;
+	if (!consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, list))
+		return 0;
 	
 	if (yPos > 1)
 		return 1;
@@ -271,8 +276,9 @@ int canMoveLeft (t_game *game, t_lista *list)
 
 int canMoveRight (t_game *game, t_lista *list)
 {
-	int xPos, yPos, xSize, ySize, status, speed;
-	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &status, &speed, list);
+	int xPos, yPos, xSize, ySize, type, status, speed;
+	if (!consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, list))
+		return 0;
 	
 	if (yPos < game->maxCols -ySize -1)
 		return 1;
@@ -280,9 +286,36 @@ int canMoveRight (t_game *game, t_lista *list)
 	return 0;
 }
 
+void moveObjects (t_game *game, t_elements *elements)
+{
+/*	if (teste de tempo com contador % elements->aliens->speed)*/
+	moveAliens (game, elements);
 
+/*	if (teste de tempo com contador % elements->aliens->speed)*/
+/*	moveMothership (game, elements);	*/
+}
 
+void moveAliens (t_game *game, t_elements *elements)
+{
+	if (!inicializa_atual_inicio (&elements->aliens))
+		return;
 
+	int xPos, yPos, xSize, ySize, type, status, speed;	
+
+	if (elements->aliensWay == 1)
+		while (canMoveLeft (game, &elements->aliens))
+		{
+			incrementa_y_atual (&elements->aliens);
+			incrementa_atual (&elements->aliens);
+		}
+
+	else
+		while (canMoveLeft (game, &elements->aliens))
+		{
+			decrementa_y_atual (&elements->aliens);
+			incrementa_atual (&elements->aliens);
+		}
+}
 
 
 
@@ -329,9 +362,9 @@ void printAllAliens (t_elements *elements)
 	if (!inicializa_atual_inicio (&elements->aliens))
 		return;
 
-	int xPos, yPos, xSize, ySize, status, speed;	
+	int xPos, yPos, xSize, ySize, type, status, speed;	
 
-	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->aliens))
+	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->aliens))
 	{
 		if (status == 0)
 			printAlien (xPos, yPos, xSize, ySize);
@@ -354,9 +387,9 @@ void printBarriers (t_elements *elements)
 	if (!inicializa_atual_inicio (&elements->barriers))
 		return;
 
-	int xPos, yPos, xSize, ySize, status, speed;	
+	int xPos, yPos, xSize, ySize, type, status, speed;	
 
-	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->barriers))
+	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->barriers))
 	{
 		if (status == 0)
 			mvaddch (xPos, yPos, 'B');
@@ -371,9 +404,9 @@ void printShots (t_elements *elements)
 		return;
 
 
-	int xPos, yPos, xSize, ySize, status, speed;	
+	int xPos, yPos, xSize, ySize, type, status, speed;	
 
-	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->shots))
+	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->shots))
 	{
 		if (status == 0)
 			mvaddch (xPos, yPos, '|');
@@ -387,9 +420,9 @@ void printBombs (t_elements *elements)
 	if (!inicializa_atual_inicio (&elements->bombs))
 		return;
 
-	int xPos, yPos, xSize, ySize, status, speed;	
+	int xPos, yPos, xSize, ySize, type, status, speed;	
 
-	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->bombs))
+	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->bombs))
 	{
 		if (status == 0)
 			mvaddch (xPos, yPos, '$');
@@ -400,9 +433,9 @@ void printBombs (t_elements *elements)
 
 void printSpaceship (t_elements *elements)
 {
-	int xPos, yPos, xSize, ySize, status, speed;
+	int xPos, yPos, xSize, ySize, type, status, speed;
 
-	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &status, &speed, &elements->spaceship);
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->spaceship);
 
 	int i, j;
 

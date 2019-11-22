@@ -5,6 +5,7 @@ struct t_nodo {
     int pos_y;
     int tam_x;
     int tam_y;
+    int tipo;
     int status;
     int speed;
 };
@@ -44,7 +45,7 @@ int tamanho_lista(int *tam, t_lista *l);
   Insere o elemento item no final da lista.
   Retorna 1 se a operação foi bem sucedida e zero caso contrário.
 */
-int insere_fim_lista(int pos_x, int pos_y, int tam_x, int tam_y, int status, int speed, t_lista *l);
+int insere_fim_lista(int pos_x, int pos_y, int tam_x, int tam_y, int tipo, int status, int speed, t_lista *l);
 
 /* 
   Inicializa o ponteiro atual para o primeiro elemento da lista.
@@ -63,11 +64,18 @@ void incrementa_atual(t_lista *l);
   Retorna em *item o valor contido na chave apontada pelo ponteiro atual. 
   Se atual não for válido a função retorna zero senão retorna 1.
 */
-int consulta_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *status, int *speed, t_lista *atual);
+int consulta_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *tipo, int *status, int *speed, t_lista *atual);
 
 /*
   Remove o elemento apontado por atual da lista l e o retorna em *item.
   Faz o atual apontar para o sucessor do nodo removido.
   Retorna 1 se houve sucesso e zero caso contrário.
 */
-int remove_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *status, int *speed, t_lista *l);
+int remove_item_atual(int *pos_x, int *pos_y, int *tam_x, int *tam_y, int *tipo, int *status, int *speed, t_lista *l);
+
+/*
+  Incrementa/decrementa o pos_x ou pos_y do nodo atual.
+*/
+void incrementa_y_atual (t_lista *l);
+void decrementa_y_atual (t_lista *l);
+void incrementa_x_atual (t_lista *l);
