@@ -204,15 +204,17 @@ int decrementa_x_atual (t_lista *l)
 	return 1;
 }
 
-void muda_status_atual (int status, t_lista *l)
+int muda_status_atual (int status, t_lista *l)
 {
 	if (l->atual == NULL)
-		return;
+		return 0;
 
 	if (l->atual == l-> ini || l->atual == l->fim)
-		return;
+		return 0;
 
 	l->atual->status = status;
+
+	return 1;
 }
 
 void incrementa_speed_atual (int speed_inc, t_lista *l)

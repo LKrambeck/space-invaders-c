@@ -29,17 +29,26 @@
 #define SHOT_BASE_COOLDOWN    5
 
 /* Body of all objects */
-#define ALIEN1_1        " AAA "
-#define ALIEN1_2        "AMMMA"
-#define ALIEN1_3        "/-X-\\"
+#define ALIEN1_1_S1     " AAA "
+#define ALIEN1_2_S1     "AMMMA"
+#define ALIEN1_3_S1     "/-X-\\"
+#define ALIEN1_1_S2     " AAA "
+#define ALIEN1_2_S2     "AMMMA"
+#define ALIEN1_3_S2     "/-X-\\"
 
-#define ALIEN2_1        ".v_v."
-#define ALIEN2_2        "}WMW{"
-#define ALIEN2_3        " / \\ "
+#define ALIEN2_1_S1     ".v_v."
+#define ALIEN2_2_S1     "}WMW{"
+#define ALIEN2_3_S1     " / \\ "
+#define ALIEN2_1_S2     ".v_v."
+#define ALIEN2_2_S2     "}WMW{"
+#define ALIEN2_3_S2     " / \\ "
 
-#define ALIEN3_1        " nmn "
-#define ALIEN3_2        "dbMdb"
-#define ALIEN3_3        "_/-\\_"
+#define ALIEN3_1_S1     " nmn "
+#define ALIEN3_2_S1     "dbMdb"
+#define ALIEN3_3_S1     "_/-\\_"
+#define ALIEN3_1_S2     "     "
+#define ALIEN3_2_S2     "     "
+#define ALIEN3_3_S2     "     "
 
 #define BARRIER1        'A'
 #define BARRIER2        'M'
@@ -157,10 +166,11 @@ int  aliensCanMoveRight            (t_game *game, t_lista *aliens);
 int  aliensCanMoveLeft             (t_game *game, t_lista *aliens);
 void moveMothership                (t_game *game, t_elements *elements, int clock);
 void resetMothership               (t_game *game, t_elements *elements);
+void alternateAliensStatus         (t_lista *aliens);
 
 
 /* Prints Lib */
-void printAlien                    (int xPos, int yPos, int type);
+void printAlien                    (int xPos, int yPos, int type, int status);
 void printAllAliens                (t_elements *elements);
 void printBarriers                 (t_elements *elements);
 void printShots                    (t_elements *elements);
@@ -809,7 +819,27 @@ void moveAliens (t_game *game, t_elements *elements, int clock)
 			else
 				moveAliensDown (elements);
 		}
+
+		alternateAliensStatus (&elements->aliens);
 	}
+}
+
+void alternateAliensStatus (t_lista *aliens)
+{
+	if (!inicializa_atual_inicio(aliens))
+		return;
+
+	int xPos, yPos, xSize, ySize, type, status, speed;
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, aliens);
+	
+	if (status == 1)
+		while (muda_status_atual (2, aliens))
+			incrementa_atual (aliens);
+
+	if (status == 2)
+		while (muda_status_atual (1, aliens))
+			incrementa_atual (aliens);
+		
 }
 
 int aliensCanMoveRight (t_game *game, t_lista *aliens)
@@ -964,32 +994,62 @@ void printAllAliens (t_elements *elements)
 
 	while (consulta_item_atual(&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->aliens))
 	{
-		printAlien (xPos, yPos, type);
+		printAlien (xPos, yPos, type, status);
 
 		incrementa_atual (&elements->aliens);
 	}
 }
 
-void printAlien (int xPos, int yPos, int type)
+void printAlien (int xPos, int yPos, int type, int status)
 {
 	switch (type)
 	{
 		case 1:
-			mvprintw (xPos  , yPos, ALIEN1_1);
-			mvprintw (xPos+1, yPos, ALIEN1_2);
-			mvprintw (xPos+2, yPos, ALIEN1_3);
+			if (status == 1)
+			{
+				mvprintw (xPos  , yPos, ALIEN1_1_S1);
+				mvprintw (xPos+1, yPos, ALIEN1_2_S1);
+				mvprintw (xPos+2, yPos, ALIEN1_3_S1);
+			}
+
+			else
+			{
+				mvprintw (xPos  , yPos, ALIEN1_1_S2);
+				mvprintw (xPos+1, yPos, ALIEN1_2_S2);
+				mvprintw (xPos+2, yPos, ALIEN1_3_S2);
+			}
 		break;
 
 		case 2:
-			mvprintw (xPos  , yPos, ALIEN2_1);
-			mvprintw (xPos+1, yPos, ALIEN2_2);
-			mvprintw (xPos+2, yPos, ALIEN2_3);
+			if (status == 1)
+			{
+				mvprintw (xPos  , yPos, ALIEN2_1_S1);
+				mvprintw (xPos+1, yPos, ALIEN2_2_S1);
+				mvprintw (xPos+2, yPos, ALIEN2_3_S1);
+			}
+
+			else
+			{
+				mvprintw (xPos  , yPos, ALIEN2_1_S2);
+				mvprintw (xPos+1, yPos, ALIEN2_2_S2);
+				mvprintw (xPos+2, yPos, ALIEN2_3_S2);
+			}
 		break;
 
 		case 3:
-			mvprintw (xPos  , yPos, ALIEN3_1);
-			mvprintw (xPos+1, yPos, ALIEN3_2);
-			mvprintw (xPos+2, yPos, ALIEN3_3);
+			if (status == 1)
+			{
+				mvprintw (xPos  , yPos, ALIEN3_1_S1);
+				mvprintw (xPos+1, yPos, ALIEN3_2_S1);
+				mvprintw (xPos+2, yPos, ALIEN3_3_S1);
+			}
+
+			else
+			{
+				mvprintw (xPos  , yPos, ALIEN3_1_S2);
+				mvprintw (xPos+1, yPos, ALIEN3_2_S2);
+				mvprintw (xPos+2, yPos, ALIEN3_3_S2);
+			}
 		break;
 	}
 
