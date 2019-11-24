@@ -119,24 +119,24 @@ void testShotsColisions            (t_game *game, t_elements *elements);
 int  testBombsColisions            (t_game *game, t_elements *elements);
 int  testAliensColisions           (t_game *game, t_elements *elements);
 int  hitSpaceship                  (t_lista *bombs, t_lista *spaceship);
-void removeShotOnBorder            (t_lista *shots);
-void removeBombsOnBorder           (t_game *game, t_lista *bombs);
 int  aliensLoseCondition           (t_game *game, t_lista *aliens);
-int  listsCrashTest                (t_lista *list1, t_lista *list2);
-int  crash                         (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size);
+void removeBombsOnBorder           (t_game *game, t_lista *bombs);
+void removeShotOnBorder            (t_lista *shots);
 int  isAlienAndBarrier             (int alienType, int barrierType);
 int  addScore                      (int shotType, int enemyType);
+int  listsCrashTest                (t_lista *list1, t_lista *list2);
+int  crash                         (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size);
 
 /* Add elements Lib */
+void addShot                       (t_elements *elements);
+void addBomb                       (t_elements *elements);
 void addBarriers                   (t_game *game, t_elements *elements);
 void addSpaceship                  (t_game *game, t_elements *elements);
 void addAliens                     (t_game *game, t_elements *elements);
-void addShot                       (t_elements *elements);
-void addBomb                       (t_elements *elements);
+void addMothership                 (t_game *game, t_elements *elements);
 void addSingleBarrier              (int i, int j, t_elements *elements);
 void getSpaceshipShootingPos       (int *x, int *y, t_elements *elements);
 void getAlienShootingPos           (int *x, int *y, t_elements *elements);
-void addMothership                 (t_game *game, t_elements *elements);
 
 
 /* Moving Lib */
@@ -157,14 +157,14 @@ void resetMothership               (t_game *game, t_elements *elements);
 
 
 /* Prints Lib */
-void printBorders                  (t_game *game);
-void printAllAliens                (t_elements *elements);
 void printAlien                    (int xPos, int yPos, int type);
+void printAllAliens                (t_elements *elements);
 void printBarriers                 (t_elements *elements);
 void printShots                    (t_elements *elements);
 void printBombs                    (t_elements *elements);
 void printSpaceship                (t_elements *elements);
 void printMothership               (t_elements *elements);
+void printBorders                  (t_game *game);
 void printScore                    (t_game *game);
 void printLose                     (t_game *game);
 int  nDigits                       (int n);
@@ -185,6 +185,8 @@ int main ()
 	startGame (&game, &elements);
 
 	playGame (&game, &elements);
+
+	destroyLists (&elements);
 
 	endwin();
 	return 0;
@@ -526,7 +528,7 @@ int listsCrashTest (t_lista *list1, t_lista *list2)
 	if (!inicializa_atual_inicio (list1))
 		return 0;
 
-	int score;
+	int score = 0i;
 
 	int xPos1, yPos1, xSize1, ySize1, type1, status1, speed1;
 	int xPos2, yPos2, xSize2, ySize2, type2, status2, speed2;
@@ -1055,11 +1057,11 @@ void printMothership (t_elements *elements)
 
 void printScore (t_game *game)
 {
-	int yPosLevel = (game->maxCols-7)/2;
-	int yPosScore = (game->maxCols-nDigits(game->score))/2;
+	int yPosLevel = (game->maxCols-8)/2;
+	int yPosScore = (game->maxCols-10)/2;
 
 	mvprintw (1, yPosLevel, "Level %d", game->level);
-	mvprintw (2, yPosScore, "%d", game->score);
+	mvprintw (2, yPosScore, "%7d", game->score);
 }
 
 int nDigits (int n)
