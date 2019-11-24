@@ -7,25 +7,26 @@
 
 #include "lib_lista_space.h"
 
-#define CLOCK           20000
+#define CLOCK           30000
 
 #define ALIEN_POINTS          100
 #define BARRIER_POINTS       -10
 #define BOMB_POINTS           10
 #define MOTHERSHIP_POINTS     2000
 
-
 /* Adjust speeds (range from 1-100) */
-#define SHOT_SPEED            50
-#define BOMB_SPEED            40
-#define ALIEN_BASE_SPEED      25
+#define SHOT_SPEED            40
+#define BOMB_SPEED            30
+#define ALIEN_BASE_SPEED      5
 #define SPACESHIP_SPEED       40
-#define MOTHERSHIP_SPEED      40
-#define SPEED_LV_UP           5
+#define MOTHERSHIP_SPEED      30
+#define SPEED_LV_UP           5 
 
 /* Adjust frequency (range from 1-10000)*/
 #define BOMB_FREQUENCY        10
 #define MOTHERSHIP_FREQUENCY  15 
+
+#define SHOT_BASE_COOLDOWN    5
 
 /* Body of all objects */
 #define ALIEN1_1        " AAA "
@@ -97,6 +98,8 @@ typedef struct Elements {
 	t_lista spaceship;
 	t_lista mothership;
 	int aliensWay;
+	int shotCooldown;
+	int shotBaseCooldown;
 } t_elements;
 
 /*
@@ -128,8 +131,8 @@ int  listsCrashTest                (t_lista *list1, t_lista *list2);
 int  crash                         (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size);
 
 /* Add elements Lib */
-void addShot                       (t_elements *elements);
 void addBomb                       (t_elements *elements);
+void addShot                       (t_elements *elements);
 void addBarriers                   (t_game *game, t_elements *elements);
 void addSpaceship                  (t_game *game, t_elements *elements);
 void addAliens                     (t_game *game, t_elements *elements);
@@ -226,6 +229,8 @@ void startGame(t_game *game, t_elements *elements)
 	game->score = 0;
 	game->level = 1;
 	elements->aliensWay = 1;
+	elements->shotCooldown = 0;
+	elements->shotBaseCooldown = SHOT_BASE_COOLDOWN;
 
 	inicializeLists (elements);
 
@@ -359,6 +364,8 @@ void playGame(t_game *game, t_elements *elements)
 		if (!input (game, elements))
 			return;
 
+		elements->shotCooldown--;
+
 		moveObjects (game, elements, clockCounter);
 
 		if (!testColisions (game, elements))
@@ -382,6 +389,7 @@ void playGame(t_game *game, t_elements *elements)
 void levelUP (t_game *game, t_elements *elements)
 {
 	game->level++;	
+	elements->shotBaseCooldown -= 1;
 
 	destroyLists    (elements);
 	inicializeLists (elements);
@@ -611,7 +619,10 @@ int input (t_game *game, t_elements *elements)
 	int key = getch();
 
 	if(key == ' ')
-		addShot (elements);
+	{
+		if (elements->shotCooldown <= 0)
+			addShot (elements);
+	}
 
 	else if(key == KEY_LEFT)
 		moveSpaceshipLeft (game, elements);
@@ -639,6 +650,8 @@ void addShot (t_elements *elements)
 	getSpaceshipShootingPos (&xPos, &yPos, elements);
 
 	insere_fim_lista (xPos, yPos, xSize, ySize, type, status, SHOT_SPEED, &elements->shots);
+
+	elements->shotCooldown = elements->shotBaseCooldown;
 }
 
 void getSpaceshipShootingPos (int *x, int *y, t_elements *elements)
@@ -775,6 +788,10 @@ void moveAliens (t_game *game, t_elements *elements, int clock)
 	int x, y, xSize, ySize, alienType, alienStatus, alienSpeed;
 	consulta_item_atual (&x, &y, &xSize, &ySize, &alienType, &alienStatus, &alienSpeed, &elements->aliens);
 	
+	/* Limits a max speed. */
+	if (alienSpeed > 100)
+		alienSpeed = 100;
+
 	if ( clock % (100/alienSpeed) == 0 )
 	{
 		if (elements->aliensWay == 1)
