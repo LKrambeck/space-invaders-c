@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <ncurses.h>
 #include <time.h>
@@ -9,12 +10,13 @@
 #define CLOCK           20000
 
 /* Adjust speeds (range from 1-100) */
-#define SHOT_SPEED       50
-#define BOMB_SPEED       40
-#define ALIEN_SPEED      30
-#define SPACESHIP_SPEED  40
-#define MOTHERSHIP_SPEED 40
-#define BOMB_FREQUENCY   10
+#define SHOT_SPEED            50
+#define BOMB_SPEED            40
+#define ALIEN_SPEED           30
+#define SPACESHIP_SPEED       40
+#define MOTHERSHIP_SPEED      40
+#define MOTHERSHIP_FREQUENCY  15
+#define BOMB_FREQUENCY        10
 
 /* Body of all objects */
 #define ALIEN1_1        " AAA "
@@ -90,6 +92,7 @@ void addBomb                       (t_elements *elements);
 void addSingleBarrier              (int i, int j, t_elements *elements);
 void getSpaceshipShootingPos       (int *x, int *y, t_elements *elements);
 void getAlienShootingPos           (int *x, int *y, t_elements *elements);
+void addMothership                 (t_game *game, t_elements *elements);
 
 
 /* Moving Lib */
@@ -105,6 +108,9 @@ void moveAliensLeft                (t_elements *elements);
 void moveAliensDown                (t_elements *elements);
 int  aliensCanMoveRight            (t_game *game, t_lista *aliens);
 int  aliensCanMoveLeft             (t_game *game, t_lista *aliens);
+void moveMothership                (t_game *game, t_elements *elements, int clock);
+void resetMothership               (t_game *game, t_elements *elements);
+
 
 /* Prints Lib */
 void printBorders                  (t_game *game);
@@ -114,6 +120,7 @@ void printBarriers                 (t_elements *elements);
 void printShots                    (t_elements *elements);
 void printBombs                    (t_elements *elements);
 void printSpaceship                (t_elements *elements);
+void printMothership               (t_elements *elements);
 void printScore                    (t_game *game);
 int  nDigits                       (int n);
 void printLose                     (t_game *game);
@@ -179,6 +186,7 @@ void startGame(t_game *game, t_elements *elements)
 	addAliens (elements);
 	addBarriers (game, elements);
 	addSpaceship (game, elements);
+	addMothership (game, elements);
 
 	printScreen (game, elements);
 }
@@ -274,7 +282,7 @@ void addSingleBarrier (int xPos, int yPos, t_elements *elements)
 void addMothership (t_game *game, t_elements *elements)
 {
 	int xSize = 3;
-	int ySize = 7;
+	int ySize = 9;
 	int xIni = 3;
 	int yIni = 1;
 	int mothershipType = 0;
@@ -466,6 +474,7 @@ void listsCrashTest (t_lista *list1, t_lista *list2)
 	}
 }
 
+/* Check if some object is overlapping another object */
 int crash (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size)
 {
 	int i,j,k,l;
@@ -600,7 +609,43 @@ void moveObjects (t_game *game, t_elements *elements, int clock)
 
 	moveBombs (&elements->bombs, clock);
 
-/*	moveMothership (game, elements, clock);	*/
+	moveMothership (game, elements, clock);	
+}
+
+void moveMothership (t_game *game, t_elements *elements, int clock)
+{
+	if (!inicializa_atual_inicio (&elements->mothership))
+		return;
+
+	int x, y, xSize, ySize, mothershipType, mothershipStatus, mothershipSpeed;
+	consulta_item_atual (&x, &y, &xSize, &ySize, &mothershipType, &mothershipStatus, &mothershipSpeed, &elements->mothership);
+
+	if (mothershipStatus == 0)
+	{
+		if (rand()%(10000/MOTHERSHIP_FREQUENCY) == 0)
+			muda_status_atual (1, &elements->mothership);
+	}
+
+	else
+	{
+		if (mothershipSpeed > 0 && mothershipSpeed <= 100)
+		{
+			if (clock % (100/MOTHERSHIP_SPEED) == 0)
+			{
+				if (canMoveRight(game, &elements->mothership))
+					incrementa_y_atual (&elements->mothership);
+
+				else
+					resetMothership (game, elements);	
+			}
+		}
+	}
+}
+
+void resetMothership (t_game *game, t_elements *elements)
+{
+	remove_item_atual (&elements->mothership);
+	addMothership (game, elements);
 }
 
 void moveAliens (t_game *game, t_elements *elements, int clock)
@@ -611,26 +656,28 @@ void moveAliens (t_game *game, t_elements *elements, int clock)
 	int x, y, xSize, ySize, alienType, alienStatus, alienSpeed;
 	consulta_item_atual (&x, &y, &xSize, &ySize, &alienType, &alienStatus, &alienSpeed, &elements->aliens);
 	
-	if (alienSpeed > 0 && alienSpeed <= 100){
-
-	if ( clock % (100/alienSpeed) == 0 )
+	/* Test if the speed is in range */
+	if (alienSpeed > 0 && alienSpeed <= 100)
 	{
-		if (elements->aliensWay == 1)
+		if ( clock % (100/alienSpeed) == 0 )
 		{
-			if (aliensCanMoveRight (game, &elements->aliens))
-				moveAliensRight (elements);
-			else
-				moveAliensDown (elements);
-		}
+			if (elements->aliensWay == 1)
+			{
+				if (aliensCanMoveRight (game, &elements->aliens))
+					moveAliensRight (elements);
+				else
+					moveAliensDown (elements);
+			}
 
-		if (elements->aliensWay == -1)
-		{
-			if (aliensCanMoveLeft (game, &elements->aliens))
-				moveAliensLeft (elements);
-			else
-				moveAliensDown (elements);
+			if (elements->aliensWay == -1)
+			{
+				if (aliensCanMoveLeft (game, &elements->aliens))
+					moveAliensLeft (elements);
+				else
+					moveAliensDown (elements);
+			}
 		}
-	}}
+	}
 }
 
 int aliensCanMoveRight (t_game *game, t_lista *aliens)
@@ -747,6 +794,7 @@ void printScreen (t_game *game, t_elements *elements)
 	printBombs      (elements);
 	printAllAliens  (elements);
 	printSpaceship  (elements);
+	printMothership (elements);
 	printBorders    (game);
 	printScore      (game);
 
@@ -859,12 +907,32 @@ void printBombs (t_elements *elements)
 
 void printSpaceship (t_elements *elements)
 {
+	if (!inicializa_atual_inicio (&elements->spaceship))
+		return;
+
 	int xPos, yPos, xSize, ySize, type, status, speed;
 
 	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->spaceship);
 
 	mvprintw (xPos  , yPos, SPACESHIP1);
 	mvprintw (xPos+1, yPos, SPACESHIP2);
+}
+
+void printMothership (t_elements *elements)
+{
+	if (!inicializa_atual_inicio (&elements->mothership))
+		return;
+
+	int xPos, yPos, xSize, ySize, type, status, speed;
+
+	consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, &elements->mothership);
+
+	if (status == 1)
+	{
+		mvprintw (xPos  , yPos, MOTHERSHIP1);
+		mvprintw (xPos+1, yPos, MOTHERSHIP2);
+		mvprintw (xPos+2, yPos, MOTHERSHIP3);
+	}
 }
 
 void printScore (t_game *game)
