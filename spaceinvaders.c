@@ -7,12 +7,15 @@
 #include "lib_lista_space.h"
 
 #define CLOCK           20000
+
+/* Adjust speeds (range from 1-100) */
 #define SHOT_SPEED      50
 #define BOMB_SPEED      40
 #define ALIEN_SPEED     30
 #define SPACESHIP_SPEED 40
-#define BOMB_FREQUENCY  8
+#define BOMB_FREQUENCY  10
 
+/* Body of all objects */
 #define ALIEN1_1        " AAA "
 #define ALIEN1_2        "AMMMA"
 #define ALIEN1_3        "/-X-\\"
@@ -307,11 +310,13 @@ void playGame(t_game *game, t_elements *elements)
 
 int testColisions (t_game *game, t_elements *elements)
 {
-	testShotsColisions  (elements);
 	if (!testAliensColisions (game, elements))
  		return 0;
+
 	if (!testBombsColisions  (elements))
 		return 0;
+
+	testShotsColisions  (elements);
 
 	return 1;
 }
@@ -398,14 +403,16 @@ int aliensLoseCondition (t_game *game, t_lista *aliens)
 
 void listsCrashTest (t_lista *list1, t_lista *list2)
 {
-	inicializa_atual_inicio (list1);
+	if (!inicializa_atual_inicio (list1))
+		return;
 
 	int xPos1, yPos1, xSize1, ySize1, type1, status1, speed1;
 	int xPos2, yPos2, xSize2, ySize2, type2, status2, speed2;
 
 	while (consulta_item_atual (&xPos1, &yPos1, &xSize1, &ySize1, &type1, &status1, &speed1, list1))
 	{
-		inicializa_atual_inicio (list2);
+		if (!inicializa_atual_inicio (list2))
+			return;
 
 		while (consulta_item_atual (&xPos2, &yPos2, &xSize2, &ySize2, &type2, &status2, &speed2, list2))
 		{
@@ -565,10 +572,13 @@ void moveObjects (t_game *game, t_elements *elements, int clock)
 
 void moveAliens (t_game *game, t_elements *elements, int clock)
 {
-	inicializa_atual_inicio (&elements->aliens);
+	if (!inicializa_atual_inicio (&elements->aliens))
+		return;
 
 	int x, y, xSize, ySize, alienType, alienStatus, alienSpeed;
 	consulta_item_atual (&x, &y, &xSize, &ySize, &alienType, &alienStatus, &alienSpeed, &elements->aliens);
+	
+	if (alienSpeed > 0 && alienSpeed <= 100){
 
 	if ( clock % (100/alienSpeed) == 0 )
 	{
@@ -587,7 +597,7 @@ void moveAliens (t_game *game, t_elements *elements, int clock)
 			else
 				moveAliensDown (elements);
 		}
-	}
+	}}
 }
 
 int aliensCanMoveRight (t_game *game, t_lista *aliens)
