@@ -212,3 +212,14 @@ void muda_status_atual (int status, t_lista *l)
 
 	l->atual->status = status;
 }
+
+void incrementa_speed_atual (int speed_inc, t_lista *l)
+{
+	if (l->atual == NULL)
+		return;
+
+	if (l->atual == l-> ini || l->atual == l->fim)
+		return;
+
+	l->atual->speed += speed_inc;
+}

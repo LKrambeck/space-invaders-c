@@ -85,3 +85,8 @@ int decrementa_x_atual (t_lista *l);
   Muda o status do nodo atual.
 */
 void muda_status_atual (int status, t_lista *l);
+
+/*
+  Incrementa a speed do nodo atual em speed_inc.
+*/
+void incrementa_speed_atual (int speed_inc, t_lista *l);

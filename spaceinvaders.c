@@ -12,11 +12,12 @@
 /* Adjust speeds (range from 1-100) */
 #define SHOT_SPEED            50
 #define BOMB_SPEED            40
-#define ALIEN_SPEED           30
+#define ALIEN_BASE_SPEED      30
 #define SPACESHIP_SPEED       40
 #define MOTHERSHIP_SPEED      40
 #define MOTHERSHIP_FREQUENCY  15
 #define BOMB_FREQUENCY        10
+#define SPEED_LV_UP           5
 
 /* Body of all objects */
 #define ALIEN1_1        " AAA "
@@ -65,12 +66,14 @@ typedef struct Elements {
 int  setupInput                    (t_game *game);
 int  validateWindowSize            (t_game *game);
 void inicializeLists               (t_elements *elements);
+void destroyLists                  (t_elements *elements);
 void startGame                     (t_game *game, t_elements *elements);
 void playGame                      (t_game *game, t_elements *elements);
 void moveObjects                   (t_game *game, t_elements *elements, int clock);
 int  testColisions                 (t_game *game, t_elements *elements);
 void printScreen                   (t_game *game, t_elements *elements);
 int  input                         (t_game *game, t_elements *elements);
+void levelUP                       (t_game *game, t_elements *elements);
 
 /* Colisions Lib */
 void testShotsColisions            (t_elements *elements);
@@ -86,7 +89,7 @@ int  crash                         (int x1, int y1, int x1Size, int y1Size, int 
 /* Add elements Lib */
 void addBarriers                   (t_game *game, t_elements *elements);
 void addSpaceship                  (t_game *game, t_elements *elements);
-void addAliens                     (t_elements *elements);
+void addAliens                     (t_game *game, t_elements *elements);
 void addShot                       (t_elements *elements);
 void addBomb                       (t_elements *elements);
 void addSingleBarrier              (int i, int j, t_elements *elements);
@@ -183,12 +186,12 @@ void startGame(t_game *game, t_elements *elements)
 
 	inicializeLists (elements);
 
-	addAliens (elements);
-	addBarriers (game, elements);
-	addSpaceship (game, elements);
+	addAliens     (game, elements);
+	addBarriers   (game, elements);
+	addSpaceship  (game, elements);
 	addMothership (game, elements);
 
-	printScreen (game, elements);
+	printScreen   (game, elements);
 }
 
 void inicializeLists (t_elements *elements)
@@ -201,7 +204,7 @@ void inicializeLists (t_elements *elements)
 	inicializa_lista (&elements->mothership);
 }
 
-void addAliens (t_elements *elements)
+void addAliens (t_game *game, t_elements *elements)
 {
 	/*TO DO: aliens da primeira fileira devem ser 3x3*/
 	int xIni = 7;
@@ -226,7 +229,7 @@ void addAliens (t_elements *elements)
 			if (row == 4 || row == 5)
 				alienType = 3;
 
-			insere_fim_lista (i, j, xSize, ySize, alienType, alienStatus, ALIEN_SPEED, &elements->aliens);
+			insere_fim_lista (i, j, xSize, ySize, alienType, alienStatus, ALIEN_BASE_SPEED + (game->level * SPEED_LV_UP), &elements->aliens);
 		}
 
 		row++;
@@ -317,7 +320,7 @@ void playGame(t_game *game, t_elements *elements)
 		if (!testColisions (game, elements))
 		{
 			printLose (game);
-			sleep (3);
+			sleep (5);
 			return;
 		}
 
@@ -325,9 +328,34 @@ void playGame(t_game *game, t_elements *elements)
 
 		usleep(CLOCK);		
 
+		if (lista_vazia (&elements->aliens))
+			levelUP (game, elements);
+
 		clockCounter++;
 	}
+}
 
+void levelUP (t_game *game, t_elements *elements)
+{
+	game->level++;	
+
+	destroyLists    (elements);
+	inicializeLists (elements);
+
+	addAliens     (game, elements);
+	addBarriers   (game, elements);
+	addSpaceship  (game, elements);
+	addMothership (game, elements);
+}
+
+void destroyLists (t_elements *elements)
+{
+	destroi_lista (&elements->aliens);
+	destroi_lista (&elements->barriers);
+	destroi_lista (&elements->shots);
+	destroi_lista (&elements->bombs);
+	destroi_lista (&elements->spaceship);
+	destroi_lista (&elements->mothership);
 }
 
 int testColisions (t_game *game, t_elements *elements)
@@ -731,7 +759,8 @@ int aliensCanMoveLeft (t_game *game, t_lista *aliens)
 
 void moveAliensLeft (t_elements *elements)
 {
-	inicializa_atual_inicio (&elements->aliens);
+	if (!inicializa_atual_inicio (&elements->aliens))
+		return;
 
 	while (decrementa_y_atual(&elements->aliens))
 	{
@@ -744,10 +773,14 @@ void moveAliensLeft (t_elements *elements)
 
 void moveAliensDown (t_elements *elements)
 {
-	inicializa_atual_inicio (&elements->aliens);
+	if (!inicializa_atual_inicio (&elements->aliens))
+		return;
 
 	while (incrementa_x_atual(&elements->aliens))
+	{
+		incrementa_speed_atual (1, &elements->aliens);
 		incrementa_atual (&elements->aliens);
+	}
 
 	/* Change the orientation of the aliens */
 	elements->aliensWay *= -1;	
