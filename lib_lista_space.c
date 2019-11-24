@@ -147,6 +147,8 @@ int remove_item_atual(t_lista *l)
 
 	free (p);
 
+	l->tamanho--;
+
 	return 1;
 }
 

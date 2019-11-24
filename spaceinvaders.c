@@ -12,32 +12,42 @@
 /* Adjust speeds (range from 1-100) */
 #define SHOT_SPEED            50
 #define BOMB_SPEED            40
-#define ALIEN_BASE_SPEED      30
+#define ALIEN_BASE_SPEED      25
 #define SPACESHIP_SPEED       40
 #define MOTHERSHIP_SPEED      40
-#define MOTHERSHIP_FREQUENCY  15
-#define BOMB_FREQUENCY        10
 #define SPEED_LV_UP           5
+
+/* Adjust frequency (range from 1-10000)*/
+#define BOMB_FREQUENCY        10
+#define MOTHERSHIP_FREQUENCY  15 
 
 /* Body of all objects */
 #define ALIEN1_1        " AAA "
 #define ALIEN1_2        "AMMMA"
 #define ALIEN1_3        "/-X-\\"
+
 #define ALIEN2_1        ".v_v."
 #define ALIEN2_2        "}WMW{"
 #define ALIEN2_3        " / \\ "
+
 #define ALIEN3_1        " nmn "
 #define ALIEN3_2        "dbMdb"
 #define ALIEN3_3        "_/-\\_"
+
 #define BARRIER1        'A'
 #define BARRIER2        'M'
+
 #define SPACESHIP1      " /^\\ "
 #define SPACESHIP2      "MMMMM"
+
 #define SHOT            '|'
+
 #define BOMB            '$'
+
 #define EXPLOSION1      " \\'/ "
 #define EXPLOSION2      "-   -"
 #define EXPLOSION3      " /,\\ "
+
 #define MOTHERSHIP1     " /MMMMM\\ " 
 #define MOTHERSHIP2     "AMoMoMoMA"
 #define MOTHERSHIP3     " \\/'-'\\/ "
@@ -346,6 +356,8 @@ void levelUP (t_game *game, t_elements *elements)
 	addBarriers   (game, elements);
 	addSpaceship  (game, elements);
 	addMothership (game, elements);
+
+	sleep(2);
 }
 
 void destroyLists (t_elements *elements)
@@ -681,29 +693,28 @@ void moveAliens (t_game *game, t_elements *elements, int clock)
 	if (!inicializa_atual_inicio (&elements->aliens))
 		return;
 
+	if (lista_vazia(&elements->aliens))
+		return;
+
 	int x, y, xSize, ySize, alienType, alienStatus, alienSpeed;
 	consulta_item_atual (&x, &y, &xSize, &ySize, &alienType, &alienStatus, &alienSpeed, &elements->aliens);
 	
-	/* Test if the speed is in range */
-	if (alienSpeed > 0 && alienSpeed <= 100)
+	if ( clock % (100/alienSpeed) == 0 )
 	{
-		if ( clock % (100/alienSpeed) == 0 )
+		if (elements->aliensWay == 1)
 		{
-			if (elements->aliensWay == 1)
-			{
-				if (aliensCanMoveRight (game, &elements->aliens))
-					moveAliensRight (elements);
-				else
-					moveAliensDown (elements);
-			}
+			if (aliensCanMoveRight (game, &elements->aliens))
+				moveAliensRight (elements);
+			else
+				moveAliensDown (elements);
+		}
 
-			if (elements->aliensWay == -1)
-			{
-				if (aliensCanMoveLeft (game, &elements->aliens))
-					moveAliensLeft (elements);
-				else
-					moveAliensDown (elements);
-			}
+		if (elements->aliensWay == -1)
+		{
+			if (aliensCanMoveLeft (game, &elements->aliens))
+				moveAliensLeft (elements);
+			else
+				moveAliensDown (elements);
 		}
 	}
 }
