@@ -9,11 +9,12 @@
 #define CLOCK           20000
 
 /* Adjust speeds (range from 1-100) */
-#define SHOT_SPEED      50
-#define BOMB_SPEED      40
-#define ALIEN_SPEED     30
-#define SPACESHIP_SPEED 40
-#define BOMB_FREQUENCY  10
+#define SHOT_SPEED       50
+#define BOMB_SPEED       40
+#define ALIEN_SPEED      30
+#define SPACESHIP_SPEED  40
+#define MOTHERSHIP_SPEED 40
+#define BOMB_FREQUENCY   10
 
 /* Body of all objects */
 #define ALIEN1_1        " AAA "
@@ -52,6 +53,7 @@ typedef struct Elements {
 	t_lista shots;
 	t_lista bombs;
 	t_lista spaceship;
+	t_lista mothership;
 	int aliensWay;
 } t_elements;
 
@@ -70,10 +72,11 @@ int  input                         (t_game *game, t_elements *elements);
 
 /* Colisions Lib */
 void testShotsColisions            (t_elements *elements);
-int  testBombsColisions            (t_elements *elements);
+int  testBombsColisions            (t_game *game, t_elements *elements);
 int  testAliensColisions           (t_game *game, t_elements *elements);
 int  hitSpaceship                  (t_lista *bombs, t_lista *spaceship);
 void removeShotOnBorder            (t_lista *shots);
+void removeBombsOnBorder           (t_game *game, t_lista *bombs);
 int  aliensLoseCondition           (t_game *game, t_lista *aliens);
 void listsCrashTest                (t_lista *list1, t_lista *list2);
 int  crash                         (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size);
@@ -187,6 +190,7 @@ void inicializeLists (t_elements *elements)
 	inicializa_lista (&elements->shots);
 	inicializa_lista (&elements->bombs);
 	inicializa_lista (&elements->spaceship);
+	inicializa_lista (&elements->mothership);
 }
 
 void addAliens (t_elements *elements)
@@ -267,6 +271,18 @@ void addSingleBarrier (int xPos, int yPos, t_elements *elements)
 		}
 }
 
+void addMothership (t_game *game, t_elements *elements)
+{
+	int xSize = 3;
+	int ySize = 7;
+	int xIni = 3;
+	int yIni = 1;
+	int mothershipType = 0;
+	int mothershipStatus = 0;
+
+	insere_fim_lista (xIni, yIni, xSize, ySize, mothershipType, mothershipStatus, MOTHERSHIP_SPEED, &elements->mothership);
+}
+
 void addSpaceship (t_game *game, t_elements *elements)
 {
 	int xSize = 2;
@@ -277,8 +293,6 @@ void addSpaceship (t_game *game, t_elements *elements)
 	int spaceshipStatus = 0;
 
 	insere_fim_lista (xIni, yIni, xSize, ySize, spaceshipType, spaceshipStatus, SPACESHIP_SPEED, &elements->spaceship);
-
-	inicializa_atual_inicio (&elements->spaceship);
 }
 
 void playGame(t_game *game, t_elements *elements)
@@ -313,7 +327,7 @@ int testColisions (t_game *game, t_elements *elements)
 	if (!testAliensColisions (game, elements))
  		return 0;
 
-	if (!testBombsColisions  (elements))
+	if (!testBombsColisions  (game, elements))
 		return 0;
 
 	testShotsColisions  (elements);
@@ -326,13 +340,14 @@ void testShotsColisions (t_elements *elements)
 	listsCrashTest (&elements->shots, &elements->aliens);
 	listsCrashTest (&elements->shots, &elements->barriers);
 	listsCrashTest (&elements->shots, &elements->bombs);
-/*	listsCrashTest (&elements->shots, &elements->mothership);*/
+	listsCrashTest (&elements->shots, &elements->mothership);
 	removeShotOnBorder (&elements->shots);
 }
 
 void removeShotOnBorder (t_lista *shots)
 {
-	inicializa_atual_inicio (shots);
+	if (!inicializa_atual_inicio (shots))
+		return;
 
 	int xPos, yPos, xSize, ySize, type, status, speed;
 
@@ -345,9 +360,27 @@ void removeShotOnBorder (t_lista *shots)
 	}
 }
 
-int testBombsColisions (t_elements *elements)
+void removeBombsOnBorder (t_game *game, t_lista *bombs)
+{
+	if (!inicializa_atual_inicio (bombs))
+		return;
+
+	int xPos, yPos, xSize, ySize, type, status, speed;
+
+	while (consulta_item_atual (&xPos, &yPos, &xSize, &ySize, &type, &status, &speed, bombs))
+	{
+		if (xPos >= game->maxRows-1)
+			remove_item_atual (bombs);
+
+		incrementa_atual (bombs);
+	}
+}
+
+int testBombsColisions (t_game *game, t_elements *elements)
 {
 	listsCrashTest (&elements->bombs, &elements->barriers);
+	removeBombsOnBorder (game, &elements->bombs);
+
 	if (hitSpaceship (&elements->bombs, &elements->spaceship))
 		return 0;
 

@@ -80,3 +80,8 @@ int incrementa_y_atual (t_lista *l);
 int decrementa_y_atual (t_lista *l);
 int incrementa_x_atual (t_lista *l);
 int decrementa_x_atual (t_lista *l);
+
+/*
+  Muda o status do nodo atual.
+*/
+void muda_status_atual (int status, t_lista *l);

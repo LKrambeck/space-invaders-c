@@ -201,3 +201,14 @@ int decrementa_x_atual (t_lista *l)
 
 	return 1;
 }
+
+void muda_status_atual (int status, t_lista *l)
+{
+	if (l->atual == NULL)
+		return;
+
+	if (l->atual == l-> ini || l->atual == l->fim)
+		return;
+
+	l->atual->status = status;
+}
