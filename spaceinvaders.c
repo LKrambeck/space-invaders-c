@@ -9,46 +9,46 @@
 
 #define CLOCK           30000
 
-#define ALIEN_POINTS          100
-#define BARRIER_POINTS       -10
-#define BOMB_POINTS           10
+#define ALIEN1_POINTS         100
+#define ALIEN2_POINTS         80
+#define ALIEN3_POINTS         50
 #define MOTHERSHIP_POINTS     2000
 
 /* Adjust speeds (range from 1-100) */
 #define SHOT_SPEED            40
-#define BOMB_SPEED            30
+#define BOMB_SPEED            20
 #define ALIEN_BASE_SPEED      5
 #define SPACESHIP_SPEED       40
 #define MOTHERSHIP_SPEED      30
 #define SPEED_LV_UP           5 
 
 /* Adjust frequency (range from 1-10000)*/
-#define BOMB_FREQUENCY        10
+#define BOMB_FREQUENCY        20
 #define MOTHERSHIP_FREQUENCY  15 
 
-#define SHOT_BASE_COOLDOWN    5
+#define SHOT_BASE_COOLDOWN    15
 
 /* Body of all objects */
-#define ALIEN1_1_S1     " AAA "
-#define ALIEN1_2_S1     "AMMMA"
-#define ALIEN1_3_S1     "/-X-\\"
-#define ALIEN1_1_S2     " AAA "
-#define ALIEN1_2_S2     "AMMMA"
-#define ALIEN1_3_S2     "/-X-\\"
+#define ALIEN1_1_S1     "/'^'\\"
+#define ALIEN1_2_S1     "( O )"
+#define ALIEN1_3_S1     "/'|'\\"
+#define ALIEN1_1_S2     "/'^'\\"
+#define ALIEN1_2_S2     "( O )"
+#define ALIEN1_3_S2     "'(')'"
 
-#define ALIEN2_1_S1     ".v_v."
-#define ALIEN2_2_S1     "}WMW{"
-#define ALIEN2_3_S1     " / \\ "
-#define ALIEN2_1_S2     ".v_v."
-#define ALIEN2_2_S2     "}WMW{"
-#define ALIEN2_3_S2     " / \\ "
+#define ALIEN2_1_S1     " \\ / "
+#define ALIEN2_2_S1     "\\o_o/"
+#define ALIEN2_3_S1     "(/ \\)"
+#define ALIEN2_1_S2     " \\ /  "
+#define ALIEN2_2_S2     "-o_o-"
+#define ALIEN2_3_S2     "(/ \\)"
 
-#define ALIEN3_1_S1     " nmn "
-#define ALIEN3_2_S1     "dbMdb"
-#define ALIEN3_3_S1     "_/-\\_"
-#define ALIEN3_1_S2     "     "
-#define ALIEN3_2_S2     "     "
-#define ALIEN3_3_S2     "     "
+#define ALIEN3_1_S1     " ___ "
+#define ALIEN3_2_S1     "|o_o|"
+#define ALIEN3_3_S1     "_/ \\_"
+#define ALIEN3_1_S2     " ___ "
+#define ALIEN3_2_S2     "|o_o|"
+#define ALIEN3_3_S2     " ] [ "
 
 #define BARRIER1        'A'
 #define BARRIER2        'M'
@@ -135,7 +135,8 @@ int  aliensLoseCondition           (t_game *game, t_lista *aliens);
 void removeBombsOnBorder           (t_game *game, t_lista *bombs);
 void removeShotOnBorder            (t_lista *shots);
 int  isAlienAndBarrier             (int alienType, int barrierType);
-int  addScore                      (int shotType, int enemyType);
+int  isShotAndEnemy                (int shotType, int enemyType);
+int  addScore                      (int enemyType);
 int  listsCrashTest                (t_lista *list1, t_lista *list2);
 int  crash                         (int x1, int y1, int x1Size, int y1Size, int x2, int y2, int x2Size, int y2Size);
 
@@ -180,6 +181,7 @@ void printMothership               (t_elements *elements);
 void printBorders                  (t_game *game);
 void printScore                    (t_game *game);
 void printLose                     (t_game *game);
+void printExplosion                (int x, int y);
 int  nDigits                       (int n);
 
 
@@ -566,7 +568,11 @@ int listsCrashTest (t_lista *list1, t_lista *list2)
 
 				remove_item_atual (list2);
 
-				score += addScore(type1, type2);
+				if (isShotAndEnemy (type1, type2))
+				{
+					printExplosion (xPos2, yPos2);
+					score += addScore (type2);
+				}
 			}
 			
 			else
@@ -588,24 +594,34 @@ int isAlienAndBarrier (int alienType, int barrierType)
 	return 0;
 }
 
-int addScore (int shotType, int enemyType)
+int isShotAndEnemy (int shotType, int enemyType)
 {
 	if (shotType == 6)
-	{
-		if (enemyType == 1 || enemyType == 2 || enemyType == 3)
-			return ALIEN_POINTS;
-
-		if (enemyType == 4 || enemyType == 5)
-			return BARRIER_POINTS;
-
-		if (enemyType == 7)
-			return BOMB_POINTS;
-
-		if (enemyType == 9)
-			return MOTHERSHIP_POINTS;
-	}
-
+		if (enemyType == 1 || enemyType == 2 || enemyType == 3 || enemyType == 9)
+			return 1;
+	
 	return 0;
+}
+
+int addScore (int enemyType)
+{
+	switch (enemyType)
+	{
+		case 1:
+			return ALIEN1_POINTS;
+
+		case 2:
+			return ALIEN2_POINTS;
+
+		case 3:
+			return ALIEN3_POINTS;
+
+		case 9:
+			return MOTHERSHIP_POINTS;
+
+		default:
+			return 0;
+	}
 }
 
 /* Check if some object is overlapping another object */
@@ -1157,4 +1173,11 @@ void printLose (t_game *game)
 
 	mvprintw (4, (game->maxCols - messegeSize)/2, "%s", loseMessege);
 
+}
+
+void printExplosion (int x, int y)
+{
+	mvprintw (x  , y, "%s", EXPLOSION1);
+	mvprintw (x+1, y, "%s", EXPLOSION2);
+	mvprintw (x+2, y, "%s", EXPLOSION3);
 }
